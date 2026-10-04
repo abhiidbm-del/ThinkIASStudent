@@ -1,0 +1,471 @@
+<div class="result-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading">
+    <mat-spinner></mat-spinner>
+    <p>Loading result details...</p>
+  </div>
+
+  <!-- Result Content -->
+  <div *ngIf="!loading() && result()" class="result-content">
+    <!-- Header Card -->
+    <mat-card class="summary-card">
+      <mat-card-header>
+        <div class="header-content">
+          <button mat-icon-button (click)="goBack()" class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <div class="header-text">
+            <mat-card-title>{{ result()!.test.title }}</mat-card-title>
+            <mat-card-subtitle>
+              Detailed Result Analysis
+            </mat-card-subtitle>
+          </div>
+          <button mat-stroked-button color="primary" type="button" (click)="downloadQuestionPaper()">
+            <mat-icon>download</mat-icon>
+            Download Question Paper
+          </button>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="summary-stats">
+          <div class="stat-item">
+            <h3>{{ result()!.score }}/{{ result()!.totalMarks }}</h3>
+            <p>Score</p>
+          </div>
+          <div class="stat-item">
+            <h3>{{ result()!.percentage }}%</h3>
+            <p>Percentage</p>
+          </div>
+          <div class="stat-item">
+            <h3>{{ result()!.rank }}</h3>
+            <p>Rank</p>
+          </div>
+          <div class="stat-item">
+            <h3>{{ result()!.totalStudents }}</h3>
+            <p>Total Students</p>
+          </div>
+          <div class="stat-item">
+            <h3>{{ formatTime(result()!.timeTaken) }}</h3>
+            <p>Time Taken</p>
+          </div>
+        </div>
+
+        <div class="submission-info">
+          <div class="info-item">
+            <strong>Submitted:</strong> {{ result()!.submittedAt | date: 'medium' }}
+          </div>
+          <div class="info-item">
+            <strong>Marks Per Question:</strong> {{ result()!.test.marksPerQuestion }}
+          </div>
+          <div class="info-item">
+            <strong>Negative Marks:</strong> {{ result()!.test.negativeMarks }}
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    &nbsp;
+
+    <!-- Performance Summary Pie Chart -->
+    <mat-card class="performance-card">
+  <mat-card-header>
+    <mat-card-title>Performance Summary</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="performance-chart-container">
+      <div class="chart-wrapper">
+        <canvas id="performancePieChart"></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item" (click)="toggleQuestionsByStatus('correct')">
+          <span class="legend-color correct"></span>
+          <span class="legend-text">Correct: {{ correctAnswersCount() }} ({{ correctPercentage() }}%)</span>
+          <mat-icon class="legend-arrow" *ngIf="showQuestionsForStatus() === 'correct'">expand_less</mat-icon>
+          <mat-icon class="legend-arrow" *ngIf="showQuestionsForStatus() !== 'correct'">expand_more</mat-icon>
+        </div>
+        <div class="legend-item" (click)="toggleQuestionsByStatus('incorrect')">
+          <span class="legend-color incorrect"></span>
+          <span class="legend-text">Incorrect: {{ incorrectAnswersCount() }} ({{ incorrectPercentage() }}%)</span>
+          <mat-icon class="legend-arrow" *ngIf="showQuestionsForStatus() === 'incorrect'">expand_less</mat-icon>
+          <mat-icon class="legend-arrow" *ngIf="showQuestionsForStatus() !== 'incorrect'">expand_more</mat-icon>
+        </div>
+        <div class="legend-item" *ngIf="notAttemptedCount() > 0" (click)="toggleQuestionsByStatus('not-attempted')">
+          <span class="legend-color not-attempted"></span>
+          <span class="legend-text">Not Attempted: {{ notAttemptedCount() }} ({{ notAttemptedPercentage() }}%)</span>
+          <mat-icon class="legend-arrow" *ngIf="showQuestionsForStatus() === 'not-attempted'">expand_less</mat-icon>
+          <mat-icon class="legend-arrow" *ngIf="showQuestionsForStatus() !== 'not-attempted'">expand_more</mat-icon>
+        </div>
+        <div class="legend-item total">
+          <span class="legend-color total"></span>
+          <span class="legend-text">Total Questions: {{ totalQuestionsCount() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Questions Preview for Selected Status -->
+    <div *ngIf="showQuestionsForStatus()" class="questions-preview-section">
+      <div class="questions-preview-header">
+        <h4>
+          <span *ngIf="showQuestionsForStatus() === 'correct'">Correct Questions</span>
+          <span *ngIf="showQuestionsForStatus() === 'incorrect'">Incorrect Questions</span>
+          <span *ngIf="showQuestionsForStatus() === 'not-attempted'">Not Attempted Questions</span>
+          <small>({{ getQuestionsByStatus(showQuestionsForStatus()!).length }} questions)</small>
+        </h4>
+        <button mat-icon-button (click)="clearQuestionsStatus()" class="close-button">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="questions-preview">
+  <div *ngFor="let question of getQuestionsByStatus(showQuestionsForStatus()!)" 
+       class="question-preview"
+       [class.correct]="question.isCorrect"
+       [class.incorrect]="!question.isCorrect && question.studentAnswer !== -1"
+       [class.not-attempted]="question.studentAnswer === -1"
+       (click)="scrollToQuestion(question)">
+    <div class="question-preview-content">
+      <span class="question-number">Q{{ getQuestionNumber(question) }}</span>
+      <span class="question-status">
+        <mat-icon *ngIf="question.isCorrect">check_circle</mat-icon>
+        <mat-icon *ngIf="!question.isCorrect && question.studentAnswer !== -1">cancel</mat-icon>
+        <mat-icon *ngIf="question.studentAnswer === -1">radio_button_unchecked</mat-icon>
+      </span>
+      <!-- Updated tags container -->
+      <div class="tags-scroll-container" (click)="$event.stopPropagation()">
+        <div class="question-tags-wrapper">
+          <span class="question-tags" *ngFor="let tag of question.tags || []" 
+                (click)="selectCategoryFromTag(tag.tag); $event.stopPropagation()">
+            {{ tag.tag }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+    <!-- Performance Insights Card -->
+    <mat-card class="performance-insights-card">
+      <mat-card-header>
+        <mat-card-title>Performance Insights</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="insights-container">
+          <div *ngIf="strongestCategory()" class="insight-item positive">
+            <mat-icon>trending_up</mat-icon>
+            <div class="insight-content">
+              <h4>Strongest Area</h4>
+              <p><strong>{{ strongestCategory()!.category }}</strong> - {{ strongestCategory()!.accuracy }}% accuracy</p>
+              <small>You answered {{ strongestCategory()!.correct }}/{{ strongestCategory()!.correct + strongestCategory()!.incorrect }} questions correctly</small>
+            </div>
+          </div>
+          
+          <div *ngIf="weakestCategory()" class="insight-item negative">
+            <mat-icon>trending_down</mat-icon>
+            <div class="insight-content">
+              <h4>Needs Improvement</h4>
+              <p><strong>{{ weakestCategory()!.category }}</strong> - {{ weakestCategory()!.accuracy }}% accuracy</p>
+              <small>Focus on this area to improve your score</small>
+            </div>
+          </div>
+          
+          <div class="insight-item info">
+            <mat-icon>lightbulb</mat-icon>
+            <div class="insight-content">
+              <h4>Recommendation</h4>
+              <p *ngIf="notAttemptedCount() > 0">Try to attempt all questions. {{ notAttemptedCount() }} questions were unattempted.</p>
+              <p *ngIf="incorrectAnswersCount() > 0">Review {{ incorrectAnswersCount() }} incorrect answers to avoid similar mistakes.</p>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Category-wise Analysis -->
+    <mat-card class="category-analysis-card">
+      <mat-card-header>
+        <mat-card-title>Category-wise Performance Analysis</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <!-- Main Categories Bar Chart -->
+        <div class="chart-section">
+          <h3>Overall Performance by Category</h3>
+          <div class="chart-wrapper">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Drill-down Navigation -->
+        <div class="drilldown-navigation">
+          <div class="category-chips">
+            <mat-chip-set>
+            <h5>Select Category</h5>
+              <mat-chip *ngFor="let cat of categoryPerformanceSummary()" 
+                        [color]="isCategorySelected(cat.category) ? 'primary' : undefined"
+                        (click)="selectCategory(cat.category)"
+                        [style.background-color]="isCategorySelected(cat.category) ? cat.color : undefined"
+                        [style.color]="isCategorySelected(cat.category) ? 'white' : undefined">
+                {{ cat.category }} ({{ cat.accuracy }}%)
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+        </div>
+
+        <!-- Selected Category Details -->
+        <div *ngIf="selectedCategory()" class="category-details">
+          <div class="category-header">
+            <h3>Details for: {{ selectedCategory() }}</h3>
+            <div class="category-overview">
+              <div class="overview-stats">
+                <div class="stat">
+                  <span class="stat-label">Total Questions</span>
+                  <span class="stat-value">{{ getCategoryTotal(selectedCategory()!) }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Accuracy</span>
+                  <span class="stat-value">{{ getCategoryAccuracy(selectedCategory()!) }}%</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Score</span>
+                  <span class="stat-value">{{ getCategoryScore(selectedCategory()!) }}/{{ getCategoryTotalMarks(selectedCategory()!) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Questions in this Category -->
+          <div class="questions-in-category">
+            <h4><strong>Questions Sorted Category Wise-</strong> {{ selectedCategory() }} </h4>
+            <div class="questions-preview">
+              <div *ngFor="let question of getQuestionsByCategory(selectedCategory()!)" 
+                   class="question-preview"
+                   [class.correct]="question.isCorrect"
+                   [class.incorrect]="!question.isCorrect && question.studentAnswer !== -1"
+                   [class.not-attempted]="question.studentAnswer === -1"
+                   (click)="scrollToQuestion(question)">
+                <div class="question-preview-content">
+                  <span class="question-number">Q{{ getQuestionNumber(question) }}</span>
+                  <span class="question-status">
+                    <mat-icon *ngIf="question.isCorrect">check_circle</mat-icon>
+                    <mat-icon *ngIf="!question.isCorrect && question.studentAnswer !== -1">cancel</mat-icon>
+                    <mat-icon *ngIf="question.studentAnswer === -1">radio_button_unchecked</mat-icon>
+                  </span>
+                  <span class="question-tag">{{ getQuestionMainTag(question) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Sub-categories -->
+          <div *ngIf="subCategoryPerformance().length > 0" class="subcategory-section">
+            <h4>Sub-categories</h4>
+            <div class="chart-wrapper">
+              <canvas id="subCategoryChart"></canvas>
+            </div>
+            
+            <div class="subcategory-list">
+              <mat-chip-set>
+              <h5>Select Sub-Category</h5>
+                <mat-chip *ngFor="let subCat of subCategoryPerformance()" 
+                          [color]="isSubCategorySelected(subCat.subCategory) ? 'primary' : undefined"
+                          (click)="selectSubCategory(subCat.subCategory)"
+                          [style.background-color]="isSubCategorySelected(subCat.subCategory) ? subCat.color : undefined"
+                          [style.color]="isSubCategorySelected(subCat.subCategory) ? 'white' : undefined">
+                  {{ subCat.subCategory }} ({{ subCat.accuracy }}%)
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+
+            <!-- Selected Sub-category Details -->
+            <div *ngIf="selectedSubCategory()" class="subcategory-details">
+              <div class="subcategory-header">
+                <h5>Details for: {{ selectedSubCategory() }}</h5>
+                <div class="subcategory-overview">
+                  <div class="overview-stats">
+                    <div class="stat">
+                      <span class="stat-label">Total Questions</span>
+                      <span class="stat-value">{{ getSubCategoryTotal(selectedCategory()!, selectedSubCategory()!) }}</span>
+                    </div>
+                    <div class="stat">
+                      <span class="stat-label">Accuracy</span>
+                      <span class="stat-value">{{ getSubCategoryAccuracy(selectedCategory()!, selectedSubCategory()!) }}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Topics -->
+              <div *ngIf="topicPerformance().length > 0" class="topic-section">
+                <h5>Topics in {{ selectedSubCategory() }}</h5>
+                <div class="chart-wrapper">
+                  <canvas id="topicChart"></canvas>
+                </div>
+                
+                <div class="topic-details">
+                  <mat-list>
+                    <h5>Topics</h5>
+                    <mat-list-item *ngFor="let topic of topicPerformance()">
+                      <div class="topic-item">
+
+                        <span class="topic-name">{{ topic.topic }}</span>
+                        <div class="topic-stats">
+                          <span class="stat correct">{{ topic.correct }} ✓</span>
+                          <span class="stat incorrect">{{ topic.incorrect }} ✗</span>
+                          <span class="stat not-attempted">{{ topic.notAttempted }} ○</span>
+                          <span class="stat total">{{ topic.total }} Total</span>
+                          <span class="accuracy" [class.high]="topic.accuracy >= 70"
+                                [class.medium]="topic.accuracy >= 40 && topic.accuracy < 70"
+                                [class.low]="topic.accuracy < 40">
+                            {{ topic.accuracy }}%
+                          </span>
+                        </div>
+                      </div>
+                    </mat-list-item>
+                  </mat-list>
+                </div>
+              </div>
+
+              <!-- Questions in this Sub-category -->
+              <div class="questions-in-subcategory">
+                <h5><strong>Questions Sorted Sub-Category Wise-</strong> {{ selectedCategory()}}/{{selectedSubCategory() }}</h5>
+                <div class="questions-preview">
+                  <div *ngFor="let question of getQuestionsBySubCategory(selectedCategory()!, selectedSubCategory()!)" 
+                       class="question-preview"
+                       [class.correct]="question.isCorrect"
+                       [class.incorrect]="!question.isCorrect && question.studentAnswer !== -1"
+                       [class.not-attempted]="question.studentAnswer === -1"
+                       (click)="scrollToQuestion(question)">
+                    <div class="question-preview-content">
+                      <span class="question-number">Q{{ getQuestionNumber(question) }}</span>
+                      <span class="question-status">
+                        <mat-icon *ngIf="question.isCorrect">check_circle</mat-icon>
+                        <mat-icon *ngIf="!question.isCorrect && question.studentAnswer !== -1">cancel</mat-icon>
+                        <mat-icon *ngIf="question.studentAnswer === -1">radio_button_unchecked</mat-icon>
+                      </span>
+                      <span class="question-tag">{{ getQuestionTopic(question) }}</span>
+                      <!-- <span class="question-preview-text" [innerHTML]="getQuestionPreview(question)"></span> -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Questions Analysis -->
+    <mat-card class="questions-card">
+      <mat-card-header class="questions-card-header">
+        <mat-card-title>Question-wise Analysis</mat-card-title>
+
+        <!-- Language Switch Toggle -->
+        <mat-radio-group [(ngModel)]="selectedLanguage" class="language-toggle">
+          <mat-radio-button value="english">English</mat-radio-button>
+          <mat-radio-button value="hindi">हिन्दी</mat-radio-button>
+        </mat-radio-group>
+      </mat-card-header>
+
+      <mat-card-content>
+        <mat-list>
+          <mat-list-item *ngFor="let question of result()!.test.questions; let i = index" class="question-item" id="question-{{i+1}}">
+            <div class="question-content">
+              <div class="question-header">
+                <h4>Question {{ i + 1 }}</h4>
+                <!-- Question Tags -->
+                <div class="question-tags" *ngIf="question.tags && question.tags.length > 0">
+                  <mat-chip-set>
+                    <mat-chip *ngFor="let tag of question.tags" 
+                              [style.background-color]="getCategoryColor(tag.tag.split('/')[0])"
+                              class="tag-chip"
+                              (click)="selectCategoryFromTag(tag.tag)">
+                      {{ tag.tag }}
+                    </mat-chip>
+                  </mat-chip-set>
+                </div>
+                <span class="status-badge" [class]="getAnswerStatus(question)">
+                  {{ getAnswerStatusText(question) }}
+                </span>
+              </div>
+
+              <!-- Question Text with Language Support -->
+              <p class="question-text" [innerHTML]="getQuestionText(question)">
+              </p>
+
+              <!-- Options with Language Support -->
+              <div class="options-list">
+                <div *ngFor="let option of question.options; let j = index" class="option-item"
+                  [class.correct-option]="j === question.correctAnswer"
+                  [class.selected-option]="j === question.studentAnswer"
+                  [class.wrong-selection]="!question.isCorrect && j === question.studentAnswer">
+                  <span class="option-letter">{{ getOptionLetter(j) }}</span>
+                  <span class="option-text" [innerHTML]="getOptionText(option)"></span>
+                  <span *ngIf="j === question.correctAnswer" class="correct-indicator">✓ Correct Answer</span>
+                  <span *ngIf="!question.isCorrect && j === question.studentAnswer" class="wrong-indicator">✗ Your Answer</span>
+                </div>
+              </div>
+
+              <!-- Answer Explanation -->
+              <div *ngIf="!question.isCorrect && question.studentAnswer !== -1" class="explanation">
+                <p class="answer-line">
+                  <strong>Your Answer:</strong>
+                  {{ getOptionLetter(question.studentAnswer) }} -
+                  <span class="answer-text" [innerHTML]="getOptionText(question.options[question.studentAnswer])">
+                  </span>
+                </p>
+                <p class="answer-line">
+                  <strong>Correct Answer:</strong>
+                  {{ getOptionLetter(question.correctAnswer) }} -
+                  <span class="answer-text" [innerHTML]="getOptionText(question.options[question.correctAnswer])">
+                  </span>
+                </p>
+              </div>
+
+              <div *ngIf="question.studentAnswer === -1" class="explanation">
+                <p><strong>Status:</strong> Not Attempted</p>
+                <p class="answer-line">
+                  <strong>Correct Answer:</strong>
+                  {{ getOptionLetter(question.correctAnswer) }} -
+                  <span class="answer-text" [innerHTML]="getOptionText(question.options[question.correctAnswer])">
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Description Section with Language Support -->
+            <div *ngIf="hasDescription(question)" class="description-section">
+              <mat-card class="description-card">
+                <mat-card-header>
+                  <mat-card-title class="description-title">
+                    <mat-icon>info</mat-icon>
+                    Additional Information
+                  </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <p class="description-text" [innerHTML]="getDescriptionText(question) | safeHtml"></p>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+            <mat-divider></mat-divider>
+          </mat-list-item>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- No Result Found -->
+  <div *ngIf="!loading() && !result()" class="no-result">
+    <mat-card>
+      <mat-card-content>
+        <p>Result not found.</p>
+        <button mat-raised-button color="primary" (click)="goBack()">
+          Back to Results
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

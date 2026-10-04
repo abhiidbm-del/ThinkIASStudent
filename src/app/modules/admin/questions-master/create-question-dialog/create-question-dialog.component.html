@@ -1,0 +1,192 @@
+<div class="create-question-dialog">
+      <div class="dialog-header">
+        <h2 mat-dialog-title>{{ isEdit() ? 'Edit Question' : 'Create New Question' }}</h2>
+        <button mat-icon-button (click)="onCancel()" class="close-button">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <mat-dialog-content class="dialog-content">
+        <form [formGroup]="questionForm" (ngSubmit)="onSubmit()" class="question-form">
+          <!-- Questions Section -->
+          <div class="questions-section">
+            <div class="section-header">
+              <h3 class="section-title">Questions ({{ questions.length }})</h3>
+              <div class="action-buttons" *ngIf="!isEdit()">
+                <button type="button" mat-raised-button color="primary" (click)="addQuestion()" class="add-question-btn">
+                  <mat-icon>add_circle</mat-icon>
+                  Add Question
+                </button>
+                <button *ngIf="questions.length > 0" type="button" mat-stroked-button color="warn"
+                  (click)="clearAllQuestions()">
+                  <mat-icon>clear_all</mat-icon>
+                  Clear All
+                </button>
+              </div>
+            </div>
+
+            <!-- File Upload Area -->
+            <div class="file-upload-section" *ngIf="!isEdit()">
+              <div class="upload-area" [class.drag-over]="isDragOver()" (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+                <div class="upload-content" *ngIf="!fileUploadLoading()">
+                  <mat-icon class="upload-icon">cloud_upload</mat-icon>
+                  <h4>Upload Questions from File</h4>
+                  <p>Drag & drop a TXT file here, or click to browse</p>
+                  <p class="file-format-info">
+                    <strong>Supported format:</strong><br>
+                    <code>
+                      Q1E. [English Question] A. [A] B. [B] C. [C] D. [D] DESC. [Description] CANS. [Answer]<br>
+                      Q1H. [Hindi Question] A. [A] B. [B] C. [C] D. [D] DESC. [Hindi Description]
+                    </code>
+                  </p>
+                  <input type="file" #fileInput hidden (change)="onFileSelected($event)" accept=".txt">
+                  <button type="button" mat-stroked-button (click)="fileInput.click()" class="browse-btn">
+                    <mat-icon>attach_file</mat-icon>
+                    Browse Files
+                  </button>
+                </div>
+                <div class="upload-loading" *ngIf="fileUploadLoading()">
+                  <mat-spinner diameter="30"></mat-spinner>
+                  <p>Processing file...</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Questions List -->
+            <div class="questions-list" *ngIf="questions.length > 0">
+              <div *ngFor="let question of questions.controls; let i = index" class="question-card">
+                <div class="question-header">
+                  <h4 class="question-number">Question {{ i + 1 }}</h4>
+                  <button type="button" mat-icon-button color="warn" (click)="removeQuestion(i)"
+                    *ngIf="questions.length > 1" matTooltip="Delete question" class="delete-btn">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+
+                <!-- Tags Section -->
+                <div class="tags-section">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Tags</mat-label>
+                    <mat-select [formControl]="getTagsControl(i)" multiple>
+                      <mat-option *ngFor="let tag of availableTags" [value]="tag._id">
+                        {{ tag.tag }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-icon matSuffix>local_offer</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <!-- English Question -->
+                <div class="language-section">
+                  <h5 class="language-title">English</h5>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Question Text (English)</mat-label>
+                    <textarea matInput [formControl]="getQuestionControl(i, 'english')" 
+                      placeholder="Enter your question in English..." rows="2"></textarea>
+                    <mat-icon matSuffix>translate</mat-icon>
+                    <mat-error *ngIf="getQuestionControl(i, 'english').hasError('required')">
+                      English question is required
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Question Description (English - Optional)</mat-label>
+                    <textarea matInput [formControl]="getDescriptionControl(i, 'english')"
+                      placeholder="Add additional context or explanation in English..." rows="2"></textarea>
+                    <mat-icon matSuffix>info</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <!-- Hindi Question -->
+                <div class="language-section">
+                  <h5 class="language-title">Hindi</h5>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Question Text (Hindi)</mat-label>
+                    <textarea matInput [formControl]="getQuestionControl(i, 'hindi')" 
+                      placeholder="अपना प्रश्न हिंदी में दर्ज करें..." rows="2"></textarea>
+                    <mat-icon matSuffix>translate</mat-icon>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Question Description (Hindi - Optional)</mat-label>
+                    <textarea matInput [formControl]="getDescriptionControl(i, 'hindi')"
+                      placeholder="अतिरिक्त संदर्भ या स्पष्टीकरण हिंदी में जोड़ें..." rows="2"></textarea>
+                    <mat-icon matSuffix>info</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <!-- Options Section -->
+                <div class="options-section">
+                  <h5 class="options-title">Options</h5>
+                  <div class="options-grid">
+                    <div *ngFor="let option of getOptions(i).controls; let j = index" class="option-field">
+                      <div class="option-row">
+                        <mat-form-field appearance="outline" class="half-width">
+                          <mat-label>Option {{ getOptionLetter(j) }} (English)</mat-label>
+                          <input matInput [formControl]="getOptionControl(i, j, 'english')"
+                            [placeholder]="'Enter option ' + getOptionLetter(j) + ' in English'">
+                          <mat-icon matSuffix>{{ getOptionLetter(j) | lowercase }}</mat-icon>
+                          <mat-error *ngIf="getOptionControl(i, j, 'english').hasError('required')">
+                            English option {{ getOptionLetter(j) }} is required
+                          </mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="half-width">
+                          <mat-label>Option {{ getOptionLetter(j) }} (Hindi)</mat-label>
+                          <input matInput [formControl]="getOptionControl(i, j, 'hindi')"
+                            [placeholder]="'विकल्प ' + getOptionLetter(j) + ' हिंदी में दर्ज करें'">
+                          <mat-icon matSuffix>{{ getOptionLetter(j) | lowercase }}</mat-icon>
+                        </mat-form-field>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="question-settings">
+                  <mat-form-field appearance="outline" class="setting-field">
+                    <mat-label>Correct Answer</mat-label>
+                    <mat-select [formControl]="getCorrectAnswerControl(i)">
+                      <mat-option *ngFor="let opt of [0,1,2,3]" [value]="opt">
+                        Option {{ getOptionLetter(opt) }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-icon matSuffix>check_circle</mat-icon>
+                    <mat-error *ngIf="getCorrectAnswerControl(i).hasError('required')">
+                      Correct answer is required
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Questions State -->
+            <div *ngIf="questions.length === 0" class="no-questions">
+              <mat-icon class="no-questions-icon">quiz</mat-icon>
+              <h4>No questions added yet</h4>
+              <p>Click "Add Question" to create questions manually, or upload a TXT file with questions.</p>
+              <div class="file-format-example">
+                <strong>File format example:</strong>
+                <pre><code>Q1E. When did India get independence? A. 1940 B. 1945 C. 1847 D. 1947 DESC. India gained independence from British rule on August 15, 1947. CANS. D
+Q1H. भारत को कब स्वतंत्रता मिली? A. 1940 B. 1945 C. 1847 D. 1947 DESC. भारत को 15 अगस्त, 1947 को ब्रिटिश शासन से स्वतंत्रता मिली।
+Q2E. Who was the first Prime Minister of India? A. Mahatma Gandhi B. Jawaharlal Nehru C. Sardar Patel D. Indira Gandhi DESC. Jawaharlal Nehru served as the first Prime Minister from 1947 to 1964. CANS. B
+Q2H. भारत के प्रथम प्रधानमंत्री कौन थे? A. महात्मा गांधी B. जवाहरलाल नेहरू C. सरदार पटेल D. इंदिरा गांधी DESC. जवाहरलाल नेहरू ने 1947 से 1964 तक भारत के प्रथम प्रधानमंत्री के रूप में कार्य किया।</code></pre>
+              </div>
+            </div>
+          </div>
+        </form>
+      </mat-dialog-content>
+
+      <mat-dialog-actions align="end" class="dialog-actions">
+        <button mat-button (click)="onCancel()" [disabled]="loading()" class="cancel-btn">
+          {{ 'Cancel' | t }}
+        </button>
+        <button mat-raised-button color="primary" (click)="onSubmit()"
+          [disabled]="!questionForm.valid || questions.length === 0 || loading()" class="submit-btn">
+          <mat-spinner diameter="20" *ngIf="loading()"></mat-spinner>
+          <span *ngIf="!loading()">
+            {{ isEdit() ? 'Update' : 'Save' }} Questions ({{ questions.length }} questions)
+          </span>
+        </button>
+      </mat-dialog-actions>
+    </div>

@@ -1,0 +1,183 @@
+<ng-container *ngIf="publicLayout() || standalonePublicPage(); else portalLayout"><app-header *ngIf="publicLayout()"></app-header><main><router-outlet></router-outlet></main><app-public-footer *ngIf="publicLayout()"></app-public-footer></ng-container>
+<ng-template #portalLayout>
+<div class="proctor-pip" *ngIf="proctoring.active()">
+  <video #shellPreview muted playsinline autoplay></video>
+  <span>{{ 'Live recording on — continues while you move around the portal' | t }}</span>
+</div>
+<!-- Check for fullscreen mode -->
+<div *ngIf="!fullscreenService.isFullscreen()">
+  <div *ngIf="proctoring.pendingRecording()" role="status" style="padding:12px;background:#fff4ce;color:#312800">
+    <p>{{ (proctoring.uploading() ? 'Test finished. Saving screen recording...' : 'Your answer is submitted. Retry saving the recording before leaving this page.') | t }}</p>
+    <button [disabled]="proctoring.uploading()" (click)="retryRecording()">{{ 'Retry recording upload' | t }}</button><p *ngIf="recordingError">{{recordingError | t}}</p>
+  </div>
+  <div class="app-container" *ngIf="authService.isLoggedIn(); else loginTemplate">
+    <!-- Top Toolbar -->
+    <mat-toolbar color="primary" class="app-toolbar">
+      <div class="toolbar-left">
+        <button mat-icon-button (click)="toggleSidenav()" class="menu-btn">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="app-title">{{ title }}</span>
+      </div>
+
+      <span class="spacer"></span>
+
+      <div class="toolbar-right"><app-language-toggle></app-language-toggle>
+        <div class="notification-container" #notificationContainer>
+          <button mat-icon-button (click)="toggleNotifications()" aria-label="Notifications">
+            <mat-icon [matBadge]="notificationService.unread()" [matBadgeHidden]="!notificationService.unread()" matBadgeColor="warn">notifications</mat-icon>
+          </button>
+          <div class="profile-dropdown notification-dropdown" *ngIf="showNotifications()">
+            <div class="dropdown-content">
+              <div class="notification-header">
+                <div>
+                  <span class="notification-eyebrow">UPDATES</span>
+                  <h3>{{ 'Notifications' | t }}</h3>
+                </div>
+                <span class="notification-count" *ngIf="notificationService.unread()">{{ notificationService.unread() }} new</span>
+              </div>
+              <button type="button" class="push-action" (click)="enablePush()">
+                <mat-icon>notifications_active</mat-icon>
+                <span>{{ 'Enable push notifications' | t }}</span>
+                <mat-icon class="action-arrow">arrow_forward</mat-icon>
+              </button>
+              <div class="notification-list">
+              <button type="button" class="dropdown-item notification-item" [class.unread-item]="!item.isRead" *ngFor="let item of notificationService.notifications()" (click)="openNotification(item)">
+                <span class="notification-type-icon" [class]="'type-' + item.type">
+                  <mat-icon>{{ item.type === 'test' ? 'quiz' : item.type === 'announcement' ? 'campaign' : item.type === 'result' ? 'insights' : 'notifications' }}</mat-icon>
+                </span>
+                <span class="notification-copy"><strong>{{ item.title | t:item.titleHindi }}</strong><small>{{ item.body | t:item.bodyHindi }}</small><time>{{ item.createdAt | date:'dd MMM, h:mm a' }}</time></span>
+                <span class="unread-dot" *ngIf="!item.isRead"></span>
+              </button>
+              </div>
+              <div class="notification-empty" *ngIf="!notificationService.notifications().length">
+                <mat-icon>notifications_none</mat-icon>
+                <strong>{{ 'No notifications' | t }}</strong>
+                <small>You're all caught up</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- User Profile Badge -->
+        <div class="user-profile-container" #profileContainer>
+          <div class="user-profile-badge" 
+               (click)="toggleProfileDropdown()">
+            <div class="user-avatar">
+              {{ getUserInitials() }}
+            </div>
+            <div class="user-info" *ngIf="getCurrentUser() as user">
+              <div class="user-name">{{ user.fullName }}</div>
+              <div class="user-details">
+                <small>Role: {{ user.role }} | Type: {{ user.type }}</small>
+              </div>
+            </div>
+            <mat-icon class="dropdown-arrow">
+              {{ showProfileDropdown() ? 'arrow_drop_up' : 'arrow_drop_down' }}
+            </mat-icon>
+          </div>
+          
+          <!-- Simple Dropdown Menu -->
+          <div class="profile-dropdown" *ngIf="showProfileDropdown()">
+            <div class="dropdown-content">
+              <a mat-button 
+                 routerLink="/my-profile" 
+                 class="dropdown-item"
+                 (click)="closeProfileDropdown()">
+                <mat-icon>person</mat-icon>
+                <span>{{ 'My Profile' | t }}</span>
+              </a>
+              <div class="dropdown-divider"></div>
+              <button mat-button 
+                      class="dropdown-item logout-item"
+                      (click)="logout()">
+                <mat-icon>logout</mat-icon>
+                <span>{{ 'Logout' | t }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- <button mat-stroked-button color="accent" (click)="logout()" class="logout-btn">
+          <mat-icon>logout</mat-icon>
+          <span class="logout-text">{{ 'Logout' | t }}</span>
+        </button> -->
+      </div>
+    </mat-toolbar>
+
+    <!-- Main Container -->
+    <mat-sidenav-container class="main-container" [hasBackdrop]="isMobile()" autosize>
+      <!-- Side Navigation -->
+      <mat-sidenav #sidenav 
+                   [mode]="getSidenavMode()" 
+                   [opened]="isSidenavOpen()"
+                   (openedChange)="onSidenavToggle($event)"
+                   class="app-sidenav">
+        <mat-nav-list>
+          <ng-container *ngFor="let item of navMenuItems()">
+            <a *ngIf="!item.children?.length" [routerLink]="item.path"
+              routerLinkActive="active-link" class="nav-item" (click)="closeSidenavOnMobile()">
+              <mat-icon class="nav-icon">{{ getMenuIcon(item) }}</mat-icon>
+              <span class="nav-text">{{ item.name | t }}</span>
+            </a>
+            <button *ngIf="item.children?.length" type="button" class="nav-item nav-parent"
+              [class.active-parent]="isMenuExpanded(item.name)" (click)="toggleMenu(item.name)">
+              <mat-icon class="nav-icon">{{ getMenuIcon(item) }}</mat-icon>
+              <span class="nav-text">{{ item.name | t }}</span>
+              <mat-icon class="expand-icon">{{ isMenuExpanded(item.name) ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+            <div *ngIf="item.children?.length && isMenuExpanded(item.name)" class="submenu">
+              <a *ngFor="let child of item.children" [routerLink]="child.path"
+                routerLinkActive="active-link" class="nav-item submenu-item" (click)="closeSidenavOnMobile()">
+                <mat-icon class="nav-icon">{{ getMenuIcon(child) }}</mat-icon>
+                <span class="nav-text">{{ child.name | t }}</span>
+              </a>
+            </div>
+          </ng-container>
+        </mat-nav-list>
+      </mat-sidenav>
+
+      <!-- Main Content -->
+      <mat-sidenav-content class="content-area">
+        <div class="content-wrapper">
+          <router-outlet></router-outlet>
+        </div>
+        <footer class="app-footer">
+          <span>Copyright &copy; 2026 <strong>ThinkCivil IAS.</strong> All rights reserved.   </span>
+        </footer>
+      </mat-sidenav-content>  
+    </mat-sidenav-container>
+  </div>
+</div>
+
+<!-- Fullscreen Mode Layout -->
+<div *ngIf="fullscreenService.isFullscreen()" class="fullscreen-container">
+  <!-- Optional: Minimal header for fullscreen mode -->
+  <div class="fullscreen-header" *ngIf="showFullscreenHeader()">
+    <div class="fullscreen-header-left">
+      <span class="fullscreen-app-title">{{ title }}</span>
+      <span class="fullscreen-route">{{ currentRouteName() }}</span>
+    </div>
+    <div class="fullscreen-header-right">
+      <!-- User info in fullscreen header -->
+      <div class="fullscreen-user-info" *ngIf="getCurrentUser() as user">
+        <span class="fullscreen-user-name">{{ user.fullName }}</span>
+      </div>
+      <button mat-icon-button (click)="fullscreenService.exitFullscreen()" 
+              class="exit-fullscreen-btn" matTooltip="Exit Fullscreen">
+        <mat-icon>fullscreen_exit</mat-icon>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Fullscreen content area -->
+  <div class="fullscreen-content-area">
+    <router-outlet></router-outlet>
+  </div>
+</div>
+
+<!-- Login Template -->
+<ng-template #loginTemplate>
+  <router-outlet></router-outlet>
+</ng-template>
+
+</ng-template>

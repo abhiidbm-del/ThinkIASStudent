@@ -1,0 +1,196 @@
+<!-- questions-master.component.html -->
+<div class="questions-management">
+  <div class="header">
+    <h1>{{ 'Question Bank' | t }}</h1>
+    <p>{{ 'Manage Questions' | t }}</p>
+  </div>
+
+  <div class="questions-container">
+    <!-- Questions List Section -->
+    <div class="questions-section">
+      <div class="section-header">
+        <div class="header-content">
+          <h3>{{ 'Questions List' | t }}</h3>
+          <div class="questions-count">{{ totalQuestions() }} questions</div>
+        </div>
+        <button class="btn btn-primary" (click)="openCreateQuestionDialog()">
+          <mat-icon>add</mat-icon>
+          {{ 'Add New Question' | t }}
+        </button>
+      </div>
+
+      <!-- Page Info -->
+      <div *ngIf="!loading() && questions().length > 0" class="page-info">
+        {{ getCurrentPageInfo() }}
+      </div>
+
+      <div *ngIf="loading()" class="loading">
+        <div class="spinner"></div>
+        <p>Loading questions...</p>
+      </div>
+
+      <div *ngIf="!loading() && questions().length === 0" class="empty-state">
+        <mat-icon>quiz</mat-icon>
+        <p>No questions available yet.</p>
+        <button mat-raised-button color="primary" (click)="openCreateQuestionDialog()">
+          <mat-icon>add</mat-icon>
+          Add First Question
+        </button>
+      </div>
+
+      <div *ngIf="!loading() && questions().length > 0" class="questions-table-container">
+        <div class="questions-table">
+          <table>
+            <thead>
+              <tr>
+                <th>S.No.</th>
+                <th>UID</th>
+                <th>Questions EN-HI</th>
+                <th>Tags</th>
+                <th>{{ 'Actions' | t }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let question of questions(); let i = index">
+                <td class="serial-number">
+                  {{ (currentPage() * pageSize()) + i + 1 }}
+                </td>
+                <td>
+                  <span class="question-id">{{ getQuestionId(question) }}</span>
+                </td>
+                <td>
+                    <div class="question-preview">
+                        <div class="question-en">{{ question.question.english | truncate:60 }}</div>
+                        <div *ngIf="question.question.hindi" class="question-hi">
+                            {{ question.question.hindi | truncate:60 }}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                  <span class="question-id" *ngFor="let tagId of question.tags">
+                        {{ getTagName(tagId) }}
+                    </span>
+                </td>
+                <td>
+                  <div class="actions">
+                    <button class="btn-view" (click)="openViewDialog(question)">
+                      <mat-icon>visibility</mat-icon>
+                      
+                    </button>
+                    <button class="btn-edit" (click)="editQuestion(question)">
+                      <mat-icon>edit</mat-icon>
+                      
+                    </button>
+                    <button class="btn-delete" (click)="deleteQuestion(question)">
+                      <mat-icon>delete</mat-icon>
+                      
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <mat-paginator 
+          [length]="totalQuestions()"
+          [pageSize]="pageSize()"
+          [pageIndex]="currentPage()"
+          [pageSizeOptions]="[5, 10, 20, 50]"
+          (page)="onPageChange($event)"
+          aria-label="Select page of questions">
+        </mat-paginator>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View Question Dialog Template -->
+<ng-template #viewDialogTemplate>
+  <div class="view-question-dialog">
+
+    <div class="dialog-header">
+      <h2 mat-dialog-title>Question Details</h2>
+      <button mat-icon-button (click)="closeViewDialog()" class="close-button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-dialog-content class="dialog-content">
+      <div *ngIf="selectedQuestion" class="question-details">
+
+        <div class="detail-row">
+          <label>UID:</label>
+          <span class="question-id-badge">{{ selectedQuestion.uid || 'N/A' }}</span>
+        </div>
+
+        <div class="detail-section">
+          <h3>Question Text</h3>
+          <div class="detail-row">
+            <label>English:</label>
+            <span class="question-text">{{ selectedQuestion.question.english }}</span>
+          </div>
+          <div *ngIf="selectedQuestion.question.hindi" class="detail-row">
+            <label>Hindi:</label>
+            <span class="question-text">{{ selectedQuestion.question.hindi }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="selectedQuestion.description?.english || selectedQuestion.description?.hindi" class="detail-section">
+          <h3>Description</h3>
+          <div *ngIf="selectedQuestion.description.english" class="detail-row">
+            <label>English:</label>
+            <span class="description-text">{{ selectedQuestion.description.english }}</span>
+          </div>
+          <div *ngIf="selectedQuestion.description.hindi" class="detail-row">
+            <label>Hindi:</label>
+            <span class="description-text">{{ selectedQuestion.description.hindi }}</span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Options</h3>
+          <div class="options-container">
+            <div *ngFor="let option of selectedQuestion.options; let i = index"
+                 class="option-detail"
+                 [class.correct]="i === selectedQuestion.correctAnswer">
+
+              <span class="option-letter">{{ getOptionLetter(i) }}</span>
+
+              <div class="option-content">
+                <div class="option-en">{{ option.english }}</div>
+                <div *ngIf="option.hindi" class="option-hi">{{ option.hindi }}</div>
+              </div>
+
+              <span *ngIf="i === selectedQuestion.correctAnswer" class="correct-badge">
+                <mat-icon>check_circle</mat-icon> Correct
+              </span>
+
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="selectedQuestion.tags?.length" class="detail-section">
+          <h3>Tags</h3>
+          <div class="tags-container">
+            <mat-chip
+              *ngFor="let tagId of selectedQuestion.tags"
+              class="question-tag" selected="true">
+              {{ getTagName(tagId) }}
+            </mat-chip>
+          </div>
+        </div>
+
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="dialog-actions">
+      <button mat-raised-button color="primary" class="edit-btn"
+              (click)="editQuestion(selectedQuestion!)">
+        <mat-icon>edit</mat-icon> Edit Question
+      </button>
+    </mat-dialog-actions>
+
+  </div>
+</ng-template>

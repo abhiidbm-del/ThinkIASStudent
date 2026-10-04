@@ -1,0 +1,170 @@
+<div class="dashboard-container">
+  <section class="dashboard-hero">
+    <div>
+      <span class="dashboard-eyebrow">{{ 'STUDENT WORKSPACE' | t }}</span>
+      <h1>{{ 'Welcome' | t }}, {{ currentUser()?.fullName }}!</h1>
+      <p>{{ 'Stay on top of your preparation, upcoming tests and progress.' | t }}</p>
+      <div class="profile-summary" *ngIf="currentUser()?.role === 'student'">
+        <span class="profile-chip"><mat-icon>person</mat-icon><b>{{ 'User Type' | t }}:</b> {{ getUserTypeLabel() }}</span>
+        <span class="profile-chip plan-chip"><mat-icon>workspace_premium</mat-icon><b>{{ 'Purchased Plan' | t }}:</b> {{ getPurchasedPlanNames().length ? getPurchasedPlanNames().join(', ') : ('No active plan' | t) }}</span>
+      </div>
+    </div>
+    <div class="hero-compass"><mat-icon>auto_awesome</mat-icon></div>
+  </section>
+  <p *ngIf="loading()">{{ 'Loading dashboard data...' | t }}</p>
+  <ng-container *ngIf="!loading() && currentUser()?.role === 'student'">
+    <section class="dashboard-quick-stats" *ngIf="activePlanIds().length > 0">
+      <a class="quick-stat-link" routerLink="/prelims-results"><mat-icon>task_alt</mat-icon><span><strong>{{ completedTestsCount() }}</strong>{{ 'Tests completed' | t }}</span><mat-icon class="quick-stat-arrow">arrow_forward</mat-icon></a>
+      <a class="quick-stat-link" routerLink="/prelims-tests"><mat-icon>event</mat-icon><span><strong>{{ upcomingTests().length }}</strong>{{ 'Upcoming tests' | t }}</span><mat-icon class="quick-stat-arrow">arrow_forward</mat-icon></a>
+      <a class="quick-stat-link" routerLink="/prelims-results"><mat-icon>insights</mat-icon><span><strong>{{ recentResults().length }}</strong>{{ 'Recent results' | t }}</span><mat-icon class="quick-stat-arrow">arrow_forward</mat-icon></a>
+    </section>
+    <section *ngIf="currentUser()?.type !== 'fresh'" class="stats-grid">
+      <mat-card class="student-exam-card" *ngIf="currentUser()?.type === 'pre' || currentUser()?.type === 'combo'">
+        <mat-card-content>
+          <div class="student-exam-heading"><div><span class="section-kicker">{{ 'PRELIMS' | t }}</span><h2>{{ 'Prelims' | t }}</h2></div><mat-icon>quiz</mat-icon></div>
+          <p class="student-exam-summary">{{ prelimsCompletedCount() }} {{ 'Completed Tests' | t }}</p>
+          <div class="dashboard-exam-list" *ngIf="prelimsExams().length; else noPrelimsExams">
+            <article class="dashboard-exam-row" *ngFor="let exam of prelimsExams().slice(0, 3)">
+              <span class="exam-type-icon prelims-icon"><mat-icon>event</mat-icon></span>
+              <span class="dashboard-exam-copy"><strong>{{ exam.examTitle }}</strong><small>{{ exam.startTime | date:'dd MMM yyyy, hh:mm a' }} · {{ exam.duration }} min</small></span>
+              <span class="dashboard-exam-result" *ngIf="exam.result"><strong>{{ exam.result.score }}/{{ exam.result.totalMarks }}</strong><small>{{ 'Submitted' | t }}</small></span>
+              <span class="dashboard-exam-state" *ngIf="!exam.result">{{ exam.window?.canTake ? ('Available' | t) : ('Upcoming' | t) }}</span>
+            </article>
+          </div>
+          <ng-template #noPrelimsExams><p class="no-dashboard-exams">{{ 'No scheduled exams yet.' | t }}</p></ng-template>
+          <div class="student-exam-actions">
+            <a mat-stroked-button color="primary" routerLink="/prelims-test-series">{{ 'View All Tests' | t }}<mat-icon>arrow_forward</mat-icon></a>
+            <a mat-button routerLink="/prelims-results">{{ 'View Results' | t }}<mat-icon>arrow_forward</mat-icon></a>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="student-exam-card" *ngIf="currentUser()?.type === 'mains' || currentUser()?.type === 'combo'">
+        <mat-card-content>
+          <div class="student-exam-heading"><div><span class="section-kicker mains-kicker">{{ 'MAINS' | t }}</span><h2>{{ 'Mains' | t }}</h2></div><mat-icon>edit_note</mat-icon></div>
+          <p class="student-exam-summary">{{ mainsCompletedCount() }} {{ 'Completed Tests' | t }}</p>
+          <div class="dashboard-exam-list" *ngIf="mainsExams().length; else noMainsExams">
+            <article class="dashboard-exam-row" *ngFor="let exam of mainsExams().slice(0, 3)">
+              <span class="exam-type-icon mains-icon"><mat-icon>event</mat-icon></span>
+              <span class="dashboard-exam-copy"><strong>{{ exam.examTitle }}</strong><small>{{ exam.startTime | date:'dd MMM yyyy, hh:mm a' }} · {{ exam.duration }} min</small></span>
+              <span class="dashboard-exam-result" *ngIf="exam.result"><strong>{{ exam.result.score }}/{{ exam.result.totalMarks }}</strong><small>{{ 'Submitted' | t }}</small></span>
+              <span class="dashboard-exam-state" *ngIf="!exam.result">{{ exam.window?.canTake ? ('Available' | t) : ('Upcoming' | t) }}</span>
+            </article>
+          </div>
+          <ng-template #noMainsExams><p class="no-dashboard-exams">{{ 'No scheduled exams yet.' | t }}</p></ng-template>
+          <div class="student-exam-actions">
+            <a mat-stroked-button color="primary" routerLink="/mains-test-series">{{ 'View All Tests' | t }}<mat-icon>arrow_forward</mat-icon></a>
+            <a mat-button routerLink="/mains-results">{{ 'View Results' | t }}<mat-icon>arrow_forward</mat-icon></a>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </section>
+    <section class="study-shortcuts" *ngIf="currentUser()?.type !== 'fresh'">
+      <div class="section-heading"><div><span class="section-kicker">{{ 'YOUR PREPARATION' | t }}</span><h2>{{ 'Continue Learning' | t }}</h2></div></div>
+      <div class="shortcut-grid">
+        <a class="shortcut-card" *ngIf="currentUser()?.type === 'pre' || currentUser()?.type === 'combo'" routerLink="/prelims-test-series">
+          <span class="shortcut-icon prelims-icon"><mat-icon>event_note</mat-icon></span>
+          <span><strong>{{ 'Prelims Test Series' | t }}</strong><small>{{ 'View schedule and upcoming series' | t }}</small></span>
+          <mat-icon class="shortcut-arrow">arrow_forward</mat-icon>
+        </a>
+        <a class="shortcut-card" *ngIf="currentUser()?.type === 'mains' || currentUser()?.type === 'combo'" routerLink="/mains-test-series">
+          <span class="shortcut-icon mains-icon"><mat-icon>calendar_month</mat-icon></span>
+          <span><strong>{{ 'Mains Test Series' | t }}</strong><small>{{ 'Plan your written exam practice' | t }}</small></span>
+          <mat-icon class="shortcut-arrow">arrow_forward</mat-icon>
+        </a>
+        <a class="shortcut-card" *ngIf="currentUser()?.type === 'pre' || currentUser()?.type === 'combo'" routerLink="/pre-materials">
+          <span class="shortcut-icon resources-icon"><mat-icon>library_books</mat-icon></span>
+          <span><strong>{{ 'Prelims Resources' | t }}</strong><small>{{ 'Open notes and learning material' | t }}</small></span>
+          <mat-icon class="shortcut-arrow">arrow_forward</mat-icon>
+        </a>
+        <a class="shortcut-card" *ngIf="currentUser()?.type === 'mains' || currentUser()?.type === 'combo'" routerLink="/mains-materials">
+          <span class="shortcut-icon resources-icon"><mat-icon>menu_book</mat-icon></span>
+          <span><strong>{{ 'Mains Study Materials' | t }}</strong><small>{{ 'Open mains notes and learning material' | t }}</small></span>
+          <mat-icon class="shortcut-arrow">arrow_forward</mat-icon>
+        </a>
+        <a class="shortcut-card" [routerLink]="currentUser()?.type === 'mains' ? '/mains-session' : '/pre-session'">
+          <span class="shortcut-icon session-icon"><mat-icon>video_camera_front</mat-icon></span>
+          <span><strong>{{ 'Live Sessions' | t }}</strong><small>{{ 'Join classes and scheduled sessions' | t }}</small></span>
+          <mat-icon class="shortcut-arrow">arrow_forward</mat-icon>
+        </a>
+      </div>
+    </section>
+    <section class="upcoming-tests-panel" *ngIf="liveTests().length">
+      <div class="section-heading"><div><span class="section-kicker">{{ 'LIVE' | t }}</span><h2>{{ 'Live Tests' | t }}</h2></div><a routerLink="/live-test">{{ 'View all' | t }} <mat-icon>arrow_forward</mat-icon></a></div>
+      <div class="upcoming-test-list">
+        <article *ngFor="let test of liveTests()">
+          <div class="upcoming-icon"><mat-icon>videocam</mat-icon></div>
+          <div class="upcoming-copy">
+            <h3>{{ test.title }}</h3>
+            <p>{{ isLiveTestActive(test) ? ('Time remaining' | t) : ('Starts in' | t) }}: {{ liveTestCountdown(test) }}</p>
+          </div>
+          <a *ngIf="isLiveTestActive(test)" mat-raised-button color="primary" routerLink="/live-test">{{ 'Start' | t }}</a>
+          <span *ngIf="!isLiveTestActive(test)" class="upcoming-duration">{{ liveTestCountdown(test) }}</span>
+        </article>
+      </div>
+    </section>
+    <section class="upcoming-tests-panel" *ngIf="upcomingTests().length">
+      <div class="section-heading"><div><span class="section-kicker">{{ 'NEXT UP' | t }}</span><h2>{{ 'Upcoming Tests' | t }}</h2></div><a routerLink="/prelims-tests">{{ 'View all' | t }} <mat-icon>arrow_forward</mat-icon></a></div>
+      <div class="upcoming-test-list"><article *ngFor="let test of upcomingTests()"><div class="upcoming-icon"><mat-icon>quiz</mat-icon></div><div class="upcoming-copy"><h3>{{ test.title }}</h3><p>{{ test.startTime | date:'dd MMM yyyy, hh:mm a' }}</p></div><span class="upcoming-duration">{{ test.duration }} min</span></article></div>
+    </section>
+    <section class="recent-results" *ngIf="recentResults().length">
+      <div class="results-heading">
+        <div>
+          <span class="section-kicker">{{ 'YOUR PROGRESS' | t }}</span>
+          <h2>{{ 'Recent Results' | t }}</h2>
+          <p>{{ 'Review your latest test performance.' | t }}</p>
+        </div>
+        <mat-icon>insights</mat-icon>
+      </div>
+      <div class="results-grid">
+        <mat-card *ngFor="let result of recentResults()" class="result-card">
+          <mat-card-content>
+            <div class="result-card-topline">
+              <span class="result-icon"><mat-icon>assignment_turned_in</mat-icon></span>
+              <span class="result-label">{{ 'Completed test' | t }}</span>
+              <span class="result-percentage">{{ result.percentage }}%</span>
+            </div>
+            <h3>{{ result.test?.title }}</h3>
+            <div class="result-score-row">
+              <strong>{{ result.score }}/{{ result.totalMarks }}</strong>
+              <span>{{ 'Score achieved' | t }}</span>
+            </div>
+            <div class="result-progress" aria-hidden="true">
+              <span [style.width.%]="result.percentage"></span>
+            </div>
+            <button mat-button [routerLink]="['/result-detail', result._id]" [queryParams]="{testId: result.test?._id}">
+              {{ 'View Details' | t }} <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </section>
+    <section class="performance-trend" *ngIf="recentResults().length">
+      <div class="results-heading">
+        <div>
+          <span class="section-kicker">{{ 'PERFORMANCE' | t }}</span>
+          <h2>{{ 'Performance Trend' | t }}</h2>
+          <p>{{ 'Score to total-marks ratio across attempted tests.' | t }}</p>
+        </div>
+        <mat-icon>show_chart</mat-icon>
+      </div>
+      <div class="performance-chart-wrap">
+        <canvas #performanceChart aria-label="Performance trend chart"></canvas>
+      </div>
+    </section>
+    <section class="plans-section">
+      <div class="dashboard-section-heading"><div><span class="section-kicker">{{ (currentUser()?.type === 'fresh' ? 'START STRONG' : 'LEVEL UP') | t }}</span><h2>{{ (currentUser()?.type === 'fresh' ? 'Choose Your Success Plan' : 'Upgrade Plan') | t }}</h2><p>{{ 'Choose a focused plan that matches your preparation goals.' | t }}</p></div><mat-icon>workspace_premium</mat-icon></div>
+      <div class="plans-grid">
+        <ng-container *ngFor="let plan of plans()">
+          <mat-card class="plan-card" [class.featured]="plan.id === 'combo'">
+            <mat-card-header><div class="plan-badge" *ngIf="plan.badge">{{ plan.badge | t:plan.badgeHindi }}</div><mat-card-title>{{ plan.name | t:plan.nameHindi }}</mat-card-title><mat-card-subtitle>{{ plan.subtitle | t:plan.subtitleHindi }}</mat-card-subtitle></mat-card-header>
+            <mat-card-content><div class="plan-price"><span class="price">₹{{ plan.totalAmount | number:'1.0-0' }}</span><span>{{ plan.duration | t:plan.durationHindi }}</span></div><ul class="plan-features"><li *ngFor="let feature of plan.features; let i = index"><mat-icon>check</mat-icon>{{ feature | t:plan.featuresHindi?.[i] }}</li></ul></mat-card-content>
+            <mat-card-actions><button mat-raised-button color="primary" (click)="openPaymentDialog(plan.id)">{{ (currentUser()?.type === 'fresh' ? 'Choose plan' : 'Upgrade Plan') | t }}</button></mat-card-actions>
+          </mat-card>
+        </ng-container>
+      </div>
+    </section>
+   
+    <section class="testimonials-section"><div class="dashboard-section-heading"><div><span class="section-kicker">{{ 'STUDENT VOICES' | t }}</span><h2>{{ 'Success Stories from Our Students' | t }}</h2><p>{{ 'Real progress from students preparing with purpose.' | t }}</p></div><mat-icon>format_quote</mat-icon></div><app-review-slider></app-review-slider></section>
+  </ng-container>
+  <section *ngIf="!loading() && currentUser()?.role === 'admin'" class="stats-grid"><mat-card><mat-card-content><h2>{{ 'Students' | t }}</h2><p>{{ totalStudentsCount() }}</p><button mat-button (click)="navigateToStudentsList()">{{ 'View Details' | t }}</button></mat-card-content></mat-card><mat-card><mat-card-content><h2>{{ 'Test Series' | t }}</h2><p>{{ totalTestsCount() }}</p></mat-card-content></mat-card><mat-card><mat-card-content><h2>{{ 'Results' | t }}</h2><p>{{ totalResultsCount() }}</p></mat-card-content></mat-card></section>
+</div>

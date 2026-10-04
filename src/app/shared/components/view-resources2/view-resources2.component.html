@@ -1,0 +1,95 @@
+<div class="syllabus-viewer">
+  <div class="explorer-header">
+    <button class="back-button" (click)="goBack()">
+      <i class="fa fa-chevron-left"></i>
+      <span>Back</span>
+    </button>
+    <div class="header-content">
+      <i class="fa" [class]="getHeaderIcon()"></i>
+      <h2>{{ getResourceTypeName() }} Explorer</h2>
+    </div>
+    <div class="resource-badge" [class]="resourceType === 2 ? 'video-badge' : 'topicwise-badge'">
+      {{ resourceType === 2 ? '📹 Video' : '📚 Material' }}
+    </div>
+  </div>
+
+  <div class="breadcrumb">
+    <div class="breadcrumb-container">
+      <span *ngFor="let crumb of breadcrumbs; let i = index" 
+            class="breadcrumb-item"
+            [class.active]="i === breadcrumbs.length - 1"
+            (click)="navigateBreadcrumb(i)">
+        <i *ngIf="i === 0" class="fa" [class]="getHomeIcon()"></i>
+        {{ crumb.name }}
+        <span *ngIf="i < breadcrumbs.length - 1" class="separator">
+          <i class="fa fa-chevron-right"></i>
+        </span>
+      </span>
+    </div>
+  </div>
+
+  <div class="explorer-window">
+    <div class="content-pane">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading content...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && currentItems.length === 0" class="empty-folder">
+        <div class="empty-icon">
+          <i class="fa" [class]="resourceType === 2 ? 'fa-video-camera' : 'fa-folder-open'"></i>
+        </div>
+        <h3>Empty Folder</h3>
+        <p>This folder doesn't contain any {{ resourceType === 2 ? 'videos' : 'items' }}</p>
+      </div>
+
+      <!-- Content Items -->
+      <div *ngFor="let item of currentItems" class="explorer-item">
+        <!-- Folder Items -->
+        <div *ngIf="isFolder(item)" 
+             class="folder"
+             (click)="navigateToFolder(item._id, item.name)">
+          <div class="folder-icon">
+            <i class="fa fa-folder"></i>
+            <i class="fa fa-folder-open folder-hover"></i>
+          </div>
+          <div class="item-info">
+            <span class="name">{{ item.name }}</span>
+            <span class="type">Folder</span>
+          </div>
+          <div class="folder-arrow">
+            <i class="fa fa-chevron-right"></i>
+          </div>
+        </div>
+
+        <!-- File Items -->
+        <div *ngIf="!isFolder(item)" 
+             class="file"
+             [class]="getFileClass(item)"
+             (click)="item?.fileLink ? openFile(item.fileLink) : null">
+          <div class="file-icon">
+            <i class="material-icons">{{ getIconForFileType(item.fileType) }}</i>
+            <div *ngIf="resourceType === 2 && item.duration" class="duration-badge">
+              {{ item.duration }}
+            </div>
+          </div>
+          <div class="item-info">
+            <span class="name">{{ item.name }}</span>
+            <span class="description">{{ getFileTypeDisplay(item) }}</span>
+            <div *ngIf="resourceType === 2 && item.thumbnail" class="thumbnail-preview">
+              <small>Thumbnail available</small>
+            </div>
+          </div>
+          <div class="file-action" *ngIf="item?.fileLink">
+            <i class="fa" [class]="getActionIcon(item)"></i>
+          </div>
+          <div class="file-action unavailable" *ngIf="!item?.fileLink">
+            <i class="fa fa-ban"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

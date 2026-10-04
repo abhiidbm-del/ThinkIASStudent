@@ -1,0 +1,43 @@
+<section class="price pb-0" id="price">
+  <div class="container">
+    <div class="main_heading py-3 text-center" *ngIf="plans.length">
+      <p>{{ currentLanguage === 'hi' ? 'योजनाएं और शुल्क' : 'Plans & Pricing' }}</p>
+      <h4 class="sub_heading mb-2">{{ currentLanguage === 'hi' ? 'अपनी तैयारी के लिए सही योजना चुनें' : 'Choose the right plan for your preparation' }}</h4>
+    </div>
+    <div *ngIf="plans.length" #pricingSlider class="swiper pricing-slider">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide" *ngFor="let plan of plans"><article class="price_card plan-card card h-100 p-4"><span class="plan-badge" *ngIf="plan.badge">{{ plan.badge | t:plan.badgeHindi }}</span><div class="plan-icon"><i class="bi bi-compass"></i></div><h3>{{plan.name | t:plan.nameHindi}}</h3><p class="plan-subtitle">{{plan.subtitle | t:plan.subtitleHindi}}</p><div class="plan-pricing"><span class="plan-original-price" *ngIf="plan.baseAmount > plan.totalAmount">₹{{plan.baseAmount | number:'1.0-0'}}</span><span class="plan-current-price">₹{{plan.totalAmount | number:'1.0-0'}}</span><span class="plan-saving" *ngIf="plan.baseAmount > plan.totalAmount">Save ₹{{(plan.baseAmount - plan.totalAmount) | number:'1.0-0'}}</span></div><p class="plan-duration">{{plan.duration | t:plan.durationHindi}}</p><ul><li *ngFor="let feature of plan.features; let i = index"><i class="bi bi-check2-circle"></i>{{feature | t:plan.featuresHindi?.[i]}}</li></ul><a class="common_button" routerLink="/register">{{'Enroll Now' | t}}</a></article></div>
+      </div>
+      <div class="swiper-pagination"></div>
+    </div>
+    <div class="main_heading py-3 text-center">
+      <p>{{ currentLanguage === 'hi' ? 'आपकी योजना में शामिल सुविधाएं' : 'Plan Benefits' }}</p>
+      <h4 class="sub_heading mb-2">{{ currentLanguage === 'hi' ? 'आपकी तैयारी को आगे बढ़ाने के लिए क्या शामिल है' : 'What your plan includes' }}</h4>
+    </div>
+
+    <div *ngIf="loading" class="text-center py-5">{{ currentLanguage === 'hi' ? 'योजनाएं लोड हो रही हैं...' : 'Loading program features...' }}</div>
+    <div *ngIf="!loading && !features.length" class="text-center py-5">{{ currentLanguage === 'hi' ? 'योजनाओं को अपडेट किया जा रहा है।' : 'Program features are being updated.' }}</div>
+
+    <div *ngIf="features.length" #planSlider class="swiper plan-slider">
+      <div class="swiper-wrapper">
+        <div *ngFor="let feature of features; let index = index" class="swiper-slide">
+          <div class="price_card card h-100">
+            <div>
+              <div class="star"><i class="bi fs-2" [ngClass]="feature.icon || 'bi-stars'"></i></div>
+              <div class="heading"><h5>{{ index + 1 }}. {{ currentLanguage === 'hi' ? (feature.titleHindi || feature.title) : feature.title }}</h5></div>
+              <p>{{ currentLanguage === 'hi' ? (feature.descriptionHindi || feature.description) : feature.description }}</p>
+              <div class="list py-2"><ul>
+                <li *ngFor="let point of (feature.points || []); let pointIndex = index" class="d-flex align-items-start gap-2">
+                  <i class="bi bi-check2-circle mt-1"></i><span>{{ currentLanguage === 'hi' ? (feature.pointsHindi[pointIndex] || point) : point }}</span>
+                </li>
+              </ul></div>
+              <p *ngIf="feature.footer">{{ currentLanguage === 'hi' ? (feature.footerHindi || feature.footer) : feature.footer }}</p>
+            </div>
+            <button class="common_button" routerLink="/register"><span>{{ currentLanguage === 'hi' ? 'अभी नामांकन करें' : 'Enroll Now' }}</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </div>
+</section>

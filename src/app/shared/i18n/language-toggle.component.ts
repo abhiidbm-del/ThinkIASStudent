@@ -1,0 +1,6 @@
+import { Component, inject } from '@angular/core';
+import { LanguageService } from './language.service';
+@Component({selector: 'app-language-toggle', standalone: true,
+template: `<div class="language-toggle" role="group" aria-label="Language / भाषा"><button type="button" [attr.aria-pressed]="!language.hindi" (click)="language.set('en')"><span>EN</span> English</button><button type="button" [attr.aria-pressed]="language.hindi" (click)="language.set('hi')"><span>हि</span> हिंदी</button></div>`,
+styles: [`:host{display:block}.language-toggle{display:inline-flex;gap:3px;padding:3px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(255,255,255,.12)}button{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border:0;border-radius:999px;cursor:pointer;background:transparent;color:#e5edf5;font-size:12px;font-weight:700;transition:background-color .2s ease,color .2s ease,box-shadow .2s ease}button span{font-size:10px;opacity:.8}button[aria-pressed=true]{background:#fff;color:#173b2a;box-shadow:0 3px 8px rgba(0,0,0,.16)}button:focus-visible{outline:2px solid #9bd2b3;outline-offset:2px}`]})
+export class LanguageToggleComponent { readonly language = inject(LanguageService); }

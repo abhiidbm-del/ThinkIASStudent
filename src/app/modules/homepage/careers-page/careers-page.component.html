@@ -1,0 +1,202 @@
+<div class="language-section">
+  <div class="language-section-content">
+    <div>
+      <span class="language-eyebrow">{{ 'LANGUAGE' | t }}</span>
+      <strong>{{ 'Choose your language' | t }}</strong>
+    </div>
+    <app-language-toggle></app-language-toggle>
+  </div>
+</div>
+<!-- careers-page.component.html -->
+<div class="careers-container">
+  <!-- Header Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1>{{ 'Join Our Team' | t }}</h1>
+      <p>{{ 'Discover exciting career opportunities and be part of our growing family' | t }}</p>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" #successNotice class="alert alert-success" id="career-success" role="status" tabindex="-1">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="container">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label>{{ 'Job Type' | t }}</label>
+          <select [(ngModel)]="filters.type" (change)="applyFilters()">
+            <option value="">{{ 'All Types' | t }}</option>
+            <option value="full-time">{{ 'Full Time' | t }}</option>
+            <option value="part-time">{{ 'Part Time' | t }}</option>
+            <option value="contract">{{ 'Contract' | t }}</option>
+            <option value="internship">{{ 'Internship' | t }}</option>
+            <option value="remote">{{ 'Remote' | t }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>{{ 'Location' | t }}</label>
+          <input type="text" [(ngModel)]="filters.location" placeholder="Enter location" (keyup.enter)="applyFilters()">
+        </div>
+
+        <div class="filter-group checkbox">
+          <label>
+            <input type="checkbox" [(ngModel)]="filters.hasVideo" (change)="applyFilters()">{{ 'Show jobs requiring demo video' | t }}</label>
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn btn-primary" (click)="applyFilters()">{{ 'Apply Filters' | t }}</button>
+          <button class="btn btn-secondary" (click)="resetFilters()">{{ 'Reset' | t }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Jobs List Section -->
+  <div class="jobs-section">
+    <div class="container">
+      <div *ngIf="isLoading" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>{{ 'Loading jobs...' | t }}</p>
+      </div>
+
+      <div *ngIf="!isLoading && jobs.length === 0" class="no-jobs">
+        <p>{{ 'No jobs found matching your criteria.' | t }}</p>
+      </div>
+
+      <div class="jobs-grid" *ngIf="!isLoading && jobs.length > 0">
+        <div class="job-card" *ngFor="let job of jobs">
+          <div class="job-header">
+            <h3 class="job-title">{{ job.title | t:job.titleHindi }}</h3>
+            <span class="job-badge" [class]="getJobTypeBadgeClass(job.type)">
+              {{ job.type | titlecase }}
+            </span>
+          </div>
+          
+          <div class="job-details">
+            <div class="detail-item">
+              <span class="detail-icon">📍</span>
+              <span>{{ job.location | t:job.locationHindi }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon">📅</span>
+              <span>Posted: {{ formatDate(job.postedDate) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon">💼</span>
+              <span>{{ job.yearsOfExperience }} years exp.</span>
+            </div>
+            <div *ngIf="job.requireDemoVideo" class="detail-item video-required">
+              <span class="detail-icon">🎥</span>
+              <span>{{ 'Demo Video Required' | t }}</span>
+            </div>
+          </div>
+          
+          <div class="job-description">
+            <p>{{ job.description | slice:0:150 }}{{ job.description.length > 150 ? '...' : '' }}</p>
+          </div>
+          
+          <button class="btn btn-apply" (click)="loadJobDetails(job._id)">{{ 'Apply Now' | t }}</button>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">{{ 'Previous' | t }}</button>
+        <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+        <button [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">{{ 'Next' | t }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Modal -->
+  <div class="modal" *ngIf="showApplicationModal" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Apply for {{ selectedJob?.title }}</h2>
+        <button class="close-btn" (click)="closeModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body"><p class="alert alert-error" role="alert" *ngIf="errorMessage">{{errorMessage}}</p>
+        <form [formGroup]="applicationForm" (ngSubmit)="applyForJob(selectedJob?._id)">
+          <div class="form-group">
+            <label for="name">{{ 'Full Name *' | t }}</label>
+            <input 
+              type="text" 
+              id="name" 
+              formControlName="name"
+              [class.error]="applicationForm.get('name')?.invalid && applicationForm.get('name')?.touched">
+            <div class="error-message" *ngIf="applicationForm.get('name')?.invalid && applicationForm.get('name')?.touched">{{ 'Name is required (minimum 2 characters)' | t }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">{{ 'Email Address *' | t }}</label>
+            <input 
+              type="email" 
+              id="email" 
+              formControlName="email"
+              [class.error]="applicationForm.get('email')?.invalid && applicationForm.get('email')?.touched">
+            <div class="error-message" *ngIf="applicationForm.get('email')?.invalid && applicationForm.get('email')?.touched">{{ 'Please enter a valid email address' | t }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="contactNo">{{ 'Contact Number *' | t }}</label>
+            <input 
+              type="tel" 
+              id="contactNo" 
+              formControlName="contactNo"
+              placeholder="e.g., 1234567890"
+              [class.error]="applicationForm.get('contactNo')?.invalid && applicationForm.get('contactNo')?.touched">
+            <div class="error-message" *ngIf="applicationForm.get('contactNo')?.invalid && applicationForm.get('contactNo')?.touched">{{ 'Please enter a valid contact number (10-15 digits)' | t }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="resume">{{ 'Upload Resume *' | t }}</label>
+            <input 
+              type="file" 
+              id="resume" 
+              accept=".pdf"
+              (change)="onFileSelected($event)">
+            <small>{{ 'PDF only (Max 10 MB)' | t:'केवल PDF (अधिकतम 10 MB)' }}</small>
+          </div>
+
+          <div *ngIf="selectedJob?.requireDemoVideo" class="form-group">
+            <label for="demoVideoLink">{{ 'Demo Video Link *' | t }}</label>
+            <input 
+              type="url" 
+              id="demoVideoLink" 
+              formControlName="demoVideoLink"
+              placeholder="https://youtube.com/..."
+              [class.error]="applicationForm.get('demoVideoLink')?.invalid && applicationForm.get('demoVideoLink')?.touched">
+            <small>{{ 'Please provide a link to your introduction video (YouTube, Vimeo, Loom)' | t }}</small>
+            <div class="error-message" *ngIf="applicationForm.get('demoVideoLink')?.invalid && applicationForm.get('demoVideoLink')?.touched">{{ 'Please provide a valid video URL' | t }}</div>
+          </div>
+
+          <div *ngIf="selectedJob?.requireDemoVideo" class="video-info">
+            <h4>{{ 'Demo Video Guidelines:' | t }}</h4>
+            <ul>
+              <li>{{ 'Introduce yourself briefly' | t }}</li>
+              <li>{{ 'Explain why you\'re interested in this position' | t }}</li>
+              <li>{{ 'Highlight your relevant experience' | t }}</li>
+              <li>{{ 'Keep it under 3 minutes' | t }}</li>
+            </ul>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">{{ 'Cancel' | t }}</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+              {{ isSubmitting ? 'Submitting...' : 'Submit Application' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

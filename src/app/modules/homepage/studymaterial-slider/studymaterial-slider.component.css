@@ -1,0 +1,131 @@
+/* Study Material Slider Mobile Responsive */
+.study_slider {
+  padding-bottom: 50px;
+}
+
+.study_slider .swiper-wrapper {
+  align-items: stretch;
+}
+
+.study_slider .swiper-slide {
+  height: auto;
+  display: flex;
+}
+
+/* Mobile optimizations */
+@media (max-width: 991px) {
+  .resource_card_slider {
+    padding-bottom: 40px;
+  }
+  
+  .swiper-pagination {
+    bottom: 0 !important;
+  }
+  
+  .swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+/* Touch improvements */
+.swiper {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.swiper-slide {
+  height: auto;
+}
+
+
+/* Increase image visibility area - Percentage based */
+.resource_card .img {
+  width: 100%;
+  height: 65%; /* Takes 65% of card height */
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Adjust card to have more height */
+.resource_card {
+  height: 450px; /* Fixed height for consistency */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure content area adjusts */
+.card_div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.resource_card {
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .16);
+  overflow: hidden;
+  width: 100%;
+}
+
+.resource_card .res span {
+  font-size: .82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background .2s ease, color .2s ease;
+}
+
+.resource_card .res span:hover {
+  background: var(--main-color, #003b67);
+  color: #fff;
+  border-color: var(--main-color, #003b67);
+}
+
+.stripe {
+  right: 12px;
+}
+
+@media (max-width: 767.98px) {
+  .study_slider .swiper-slide {
+    width: 100% !important;
+  }
+
+  .resource_card {
+    height: 400px;
+    max-width: 300px;
+    width: 90%;
+    margin: 0 auto;
+  }
+
+  .resource_card_slider {
+    align-items: stretch;
+  }
+
+  .card_icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .card_heading h5 {
+    font-size: 1.05rem;
+  }
+
+  .resource_card .res {
+    gap: 8px !important;
+    flex-wrap: wrap;
+  }
+
+  .resource_card .res span {
+    padding: 5px 10px;
+    font-size: .78rem;
+  }
+
+  .stripe {
+    top: -34px;
+    right: 8px;
+    font-size: 12px;
+    padding: 3px 9px;
+  }
+}

@@ -1,0 +1,201 @@
+<!-- src/app/modules/dashboard/payment-dialog/payment-dialog.component.html -->
+<div class="payment-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ 'Complete Your Payment' | t }}</h2>
+    <button mat-icon-button (click)="onCancel()" class="close-button" [disabled]="isProcessing()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <form [formGroup]="paymentForm" class="payment-form">
+      <p role="status" *ngIf="ownershipLoading()">Checking active plans...</p>
+      <p role="alert" *ngIf="ownershipError()">{{ownershipError()}} <button type="button" (click)="loadOwnership()">Retry</button></p>
+      <p role="status" *ngIf="alreadyOwned()">You already have this active plan. Choose a different plan or renew after expiry.</p>
+      
+      <!-- Selected Plan Display -->
+      <div class="selected-plan" *ngIf="getSelectedPlan()">
+        <div class="plan-icon">
+          <mat-icon>stars</mat-icon>
+        </div>
+        <div class="plan-details">
+          <h3>{{ 'Selected Plan' | t }}</h3>
+          <div class="plan-name">{{ getSelectedPlan()?.name | t:getSelectedPlan()?.nameHindi }}</div>
+          <div class="plan-amount">
+            <span class="amount">₹{{ getSelectedPlan()?.totalAmount | number:'1.0-0' }}</span>
+            <span class="duration">/ {{ getSelectedPlan()?.duration | t:getSelectedPlan()?.durationHindi }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plan Selection from Backend -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ 'Choose Your Plan' | t }}</mat-label>
+        <mat-select formControlName="plan" (selectionChange)="onPlanChange($event.value)" [disabled]="isProcessing()">
+          <mat-option *ngFor="let plan of getPlans()" [value]="plan.id" [disabled]="activePlanIds().includes(plan.id)">
+            <div class="plan-option">
+              <span class="option-name">{{ plan.name | t:plan.nameHindi }}{{activePlanIds().includes(plan.id) ? " (Already active)" : ""}}</span>
+              <span class="option-price">₹{{ plan.totalAmount | number:'1.0-0' }}</span>
+              <span class="duration-badge">{{ plan.duration | t:plan.durationHindi }}</span>
+            </div>
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>account_balance_wallet</mat-icon>
+        <mat-hint *ngIf="!getSelectedPlan()">{{ 'Select a plan to continue' | t }}</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width"><mat-label>Program (optional)</mat-label><mat-select formControlName="programId" (openedChange)="$event && loadPrograms(true)" (selectionChange)="onProgramChange($event.value)"><mat-option value="">Plan only</mat-option><mat-option *ngFor="let program of programs()" [value]="program._id">{{program.programName | t:program.programNameHindi}}</mat-option></mat-select></mat-form-field>
+      <p *ngIf="programsLoading()" role="status">Loading programs...</p>
+      <p *ngIf="programsError()" role="alert">{{programsError()}} <button type="button" (click)="loadPrograms()">Retry</button></p>
+      <p *ngIf="!programsLoading() && !programsError() && !programs().length" role="status">No active, unexpired programs are available for batch enrollment.</p>
+      <mat-form-field appearance="outline" class="full-width"><mat-label>Batch</mat-label><mat-select formControlName="batchId" placeholder="Select a batch"><mat-option *ngFor="let batch of batches()" [value]="batch._id">{{batch.batchName | t:batch.batchNameHindi}} · {{batch.startDate | date}}</mat-option></mat-select><mat-hint *ngIf="!paymentForm.value.programId">Select a program above to see its active batches.</mat-hint><mat-error>Select a batch for this program</mat-error></mat-form-field>
+      <p *ngIf="batchLoading()">Loading batches...</p><p role="alert" *ngIf="enrollmentError()">{{enrollmentError()}}</p>
+      <!-- Coupon Code Section -->
+      <div class="coupon-section" *ngIf="getSelectedPlan()">
+        <div class="coupon-header">
+          <mat-icon>local_offer</mat-icon>
+          <span>{{ 'Have a coupon code?' | t }}</span>
+        </div>
+        
+        <div class="coupon-input-wrapper" [class.coupon-applied]="hasCouponApplied()">
+          <mat-form-field appearance="outline" class="coupon-input">
+            <mat-label>{{ 'Enter coupon code' | t }}</mat-label>
+            <input matInput 
+                   formControlName="couponCode" 
+                   placeholder="e.g., SAVE20" 
+                   [disabled]="isCouponInputDisabled()"
+                   maxlength="20">
+            <mat-icon matSuffix>sell</mat-icon>
+            <mat-hint *ngIf="!hasCouponApplied() && !getCouponError()">
+              {{ 'Enter valid coupon code' | t }}
+            </mat-hint>
+          </mat-form-field>
+
+          <div class="coupon-status">
+            <mat-spinner diameter="20" *ngIf="isApplyingCoupon()"></mat-spinner>
+            
+            <div class="coupon-applied-badge" *ngIf="hasCouponApplied()">
+              <mat-icon>check_circle</mat-icon>
+              <span>{{ getCouponApplied()?.code }} applied</span>
+              <button mat-icon-button (click)="removeCoupon()" matTooltip="Remove coupon">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+            
+            <div class="coupon-error" *ngIf="getCouponError() && !hasCouponApplied()">
+              <mat-icon>error</mat-icon>
+              <span>{{ getCouponError() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="coupon-details" *ngIf="hasCouponApplied()">
+          <div class="discount-badge">
+            <mat-icon>discount</mat-icon>
+            <span *ngIf="getCouponApplied()?.discountType === 'percentage'">
+              {{ getCouponApplied()?.discountValue }}% OFF
+            </span>
+            <span *ngIf="getCouponApplied()?.discountType === 'fixed'">
+              ₹{{ getCouponApplied()?.discountValue }} OFF
+            </span>
+            <span *ngIf="isFreeCoupon()" class="free-badge">{{ 'FREE' | t }}</span>
+          </div>
+          <span class="coupon-description">{{ getCouponApplied()?.description || 'Discount applied' }}</span>
+          <span class="coupon-saved-amount" *ngIf="getDiscountAmount() > 0">
+            You save ₹{{ getDiscountAmount() | number:'1.0-0' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Payment Summary Card -->
+      <mat-card class="payment-summary" *ngIf="getSelectedPlan()">
+        <mat-card-header>
+          <mat-card-title>{{ 'Payment Summary' | t }}</mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="summary-details">
+            <div class="summary-row">
+              <span>{{ 'Plan Fee:' | t }}</span>
+              <span>₹{{ getSelectedPlan()?.totalAmount | number:'1.0-0' }}</span>
+            </div>
+            
+            <div class="summary-row discount-row" *ngIf="getDiscountAmount() > 0">
+              <span>
+                <mat-icon class="discount-icon">discount</mat-icon>
+                {{ 'Discount' | t }} 
+                <span class="coupon-code-badge">{{ getCouponApplied()?.code }}</span>
+              </span>
+              <span class="discount-amount">- ₹{{ getDiscountAmount() | number:'1.0-0' }}</span>
+            </div>
+            
+            <mat-divider></mat-divider>
+            
+            <div class="summary-row total">
+              <span><strong>{{ 'Total Amount:' | t }}</strong></span>
+              <span class="total-amount">
+                <strong *ngIf="!isFreePlan()">₹{{ calculateTotal() | number:'1.0-0' }}</strong>
+                <strong *ngIf="isFreePlan()" class="free-amount">{{ 'FREE' | t }}</strong>
+              </span>
+            </div>
+
+            <!-- Show savings message -->
+            <div class="savings-message" *ngIf="getDiscountAmount() > 0">
+              <mat-icon>savings</mat-icon>
+              <span>You save ₹{{ getDiscountAmount() | number:'1.0-0' }} with this coupon!</span>
+            </div>
+
+            <!-- Free Plan Message -->
+            <div class="free-plan-message" *ngIf="isFreePlan()">
+              <mat-icon>redeem</mat-icon>
+              <span>{{ 'This is a free coupon! No payment required. Click "Activate Now" to start.' | t }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Payment Methods Info (Hidden for free plans) -->
+      <div class="payment-methods" *ngIf="!isFreePlan()">
+        <span class="methods-label">{{ 'Accepted Payment Methods:' | t }}</span>
+        <div class="method-icons">
+          <img src="https://razorpay.com/assets/razorpay-glyph.svg" alt="Razorpay" class="payment-icon">
+          <span class="method-text">UPI</span>
+          <span class="method-text">{{ 'Card' | t }}</span>
+          <span class="method-text">{{ 'NetBanking' | t }}</span>
+          <span class="method-text">{{ 'Wallet' | t }}</span>
+        </div>
+      </div>
+
+      <!-- Terms and Conditions -->
+      <div class="terms-section">
+        <mat-checkbox 
+          formControlName="acceptTerms" 
+          color="primary"
+          [disabled]="isProcessing()">{{ 'I agree to the' | t }}<a href="/terms" target="_blank">{{ 'Terms and Conditions' | t }}</a> and 
+          <a href="/privacy" target="_blank">{{ 'Privacy Policy' | t }}</a>
+        </mat-checkbox>
+        <mat-error *ngIf="paymentForm.get('acceptTerms')?.hasError('required') && paymentForm.get('acceptTerms')?.touched">{{ 'You must accept the terms and conditions' | t }}</mat-error>
+      </div>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-button (click)="onCancel()" [disabled]="isProcessing()">
+      {{ 'Cancel' | t }}
+    </button>
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onPayNow()"
+            [disabled]="isDisabled()"
+            class="pay-button">
+      <mat-spinner diameter="20" *ngIf="isProcessing()"></mat-spinner>
+      <span class="pay-button-content" *ngIf="!isProcessing()">
+        <mat-icon class="button-icon" *ngIf="!isFreePlan()">payment</mat-icon>
+        <mat-icon class="button-icon" *ngIf="isFreePlan()">redeem</mat-icon>
+        <span *ngIf="!isFreePlan()">Pay ₹{{ calculateTotal() | number:'1.0-0' }}</span>
+        <span *ngIf="isFreePlan()">{{ 'Activate Now (Free)' | t }}</span>
+      </span>
+    </button>
+  </mat-dialog-actions>
+</div>

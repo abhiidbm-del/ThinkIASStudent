@@ -1,0 +1,310 @@
+<header class="header" id="header">
+    <div class="container">
+        <div class="row">
+            <div class="d-flex align-items-center gap-2 justify-content-between py-2">
+                <!-- Top left - Desktop only -->
+                <div class="top_left_header d-none d-lg-flex align-items-center">
+                    <div class="date">
+                        <p class="d-flex align-items-center gap-2">
+                            <span>+91-88827 44452</span>
+                            <span><i class="bi bi-calendar"></i> {{ currentDate | date:'EEE, d MMM y' }}</span>
+                            <span><i class="bi bi-stopwatch"></i> {{ currentDate | date:'hh:mm:ss a' }}</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Top right -->
+                <div class="top_right_header d-flex align-items-center gap-2">
+                    <div class="theme_changer d-flex align-items-center gap-2">
+                        <div class="  d-md-inline">
+                            <span class="d-inline-flex align-items-center gap-1">
+                                <span class="en">Lang:</span>
+                                <span class="hi">भाषा:</span>
+                                <button class="lang-btn en-btn active d-inline ms-1"
+                                    (click)="switchLanguage('en')">EN</button>
+                                <button class="lang-btn hi-btn d-inline ms-1" (click)="switchLanguage('hi')">HI</button>
+                            </span>
+
+                        </div>
+
+                        <div class="button_1 announcement-wrap  d-md-inline">
+                            <button (click)="openAnnouncements()" class="announcement-btn position-relative">
+                                <i class="bi bi-megaphone-fill d-lg-none"></i>
+                                <span class="d-none d-lg-inline">
+                                    <span class="en">Announcement</span>
+                                    <span class="hi">घोषणा</span>
+                                </span>
+                                <span *ngIf="announcementCount > 0" class="announcement-badge">
+                                    {{announcementCount}}
+                                </span>
+                            </button>
+                        </div>
+                        <div class="button_1 button_simple  d-md-inline">
+                            <a routerLink="/register" class="en"><i class="bi bi-key me-1"></i> <span class="d-lg-none">Register</span><span class="d-none d-lg-inline">Student Registration</span></a>
+                            <a routerLink="/register" class="hi"><i class="bi bi-key me-1"></i> <span class="d-lg-none">पंजीकरण</span><span class="d-none d-lg-inline">छात्र पंजीकरण</span></a>
+                        </div>
+                        <div class="button_1 button_3">
+                            <a (click)="onLogin()" routerLink="/login" class="en"><i class="bi bi-key me-1"></i>
+                                Login</a>
+                            <a (click)="onLogin()" routerLink="/login" class="hi"><i class="bi bi-key me-1"></i>
+                                लॉगिन</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Header -->
+        <div class="bottom_header">
+            <div class="d-flex align-items-center justify-content-between">
+                <!-- Logo -->
+                <div class="logo_main">
+                    <a href="#">
+                        <img src="assets/images/Screenshot 2026-01-11 132820.png" alt="ThinkCivil IAS">
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="desktop_menu d-none d-lg-block">
+                    <ul class="menu d-flex align-items-center">
+                        <li (click)="scrollToSection('about')"><a href="javascript:void(0)" class="en">About</a><a
+                                href="javascript:void(0)" class="hi">हमारे बारे में</a>
+                        </li>
+
+                        <li (click)="scrollToSection('guidence')"><a href="javascript:void(0)" class="en">Objective</a><a
+                            href="javascript:void(0)" class="hi">उद्देश्य</a></li>
+
+                        <li (click)="scrollToSection('materials')"><a href="javascript:void(0)"
+                            class="en">Syllabus</a><a href="javascript:void(0)" class="hi">पाठ्यक्रम</a></li>
+
+                        <!-- Mentorship Program Dropdown -->
+                        <li class="dropdown position-relative" *ngFor="let group of programGroups"><a class="dropdown-toggle" href="#" (click)="$event.preventDefault()" data-bs-toggle="dropdown">{{currentLanguage==='hi'?group.hi:group.label}}</a><div class="dropdown-menu"><a class="dropdown-item" *ngFor="let program of groupPrograms(group)" [routerLink]="['/program',program._id]">{{programDisplayName(program)}}</a></div></li>
+
+                        <li class="dropdown position-relative">
+                            <a href="javascript:void(0)" class="en dropdown-toggle" data-bs-toggle="dropdown">
+                            Resources
+                            </a>
+                            <a href="javascript:void(0)" class="hi dropdown-toggle" data-bs-toggle="dropdown">
+                            संसाधन
+                            </a>
+                            <div class="dropdown-menu">
+                                <ng-container
+                                    *ngIf="!loadingModules && !modulesError && (!modules || modules.length === 0)">
+                                    <a *ngIf="currentLanguage==='en'" class="dropdown-item en disabled text-muted">
+                                        <i class="fas fa-folder-open me-1"></i> No resources available
+                                    </a>
+                                    <a *ngIf="currentLanguage==='hi'" class="dropdown-item hi disabled text-muted">
+                                        <i class="fas fa-folder-open me-1"></i> कोई संसाधन उपलब्ध नहीं
+                                    </a>
+                                </ng-container>
+                                <ng-container *ngFor="let module of modules">
+                                    <!-- Add click handler to open module viewer -->
+                                    <a *ngIf="currentLanguage==='en'" class="dropdown-item en"
+                                        (click)="openFreeResourceModule(module)">
+                                        {{module.name}}
+                                    </a>
+                                    <a *ngIf="currentLanguage==='hi'" class="dropdown-item hi"
+                                        (click)="openFreeResourceModule(module)">
+                                        {{module.nameHi || module.name}}
+                                    </a>
+                                </ng-container>
+                                <ng-container>
+                                    <a href="javascript:void(0)" *ngIf="currentLanguage === 'en'" class="dropdown-item en free-quiz"
+                                        (click)="openFreeQuiz()">
+                                        Quiz
+                                    </a>
+                                    <a href="javascript:void(0)" *ngIf="currentLanguage === 'hi'" class="dropdown-item hi free-quiz"
+                                        (click)="openFreeQuiz()">
+                                        क्विज़
+                                    </a>
+                                </ng-container>
+                            </div>
+                        </li>
+                        <li><a routerLink="/careers-page" class="en">Career</a><a routerLink="/careers-page" class="hi">करियर</a></li>
+                        <li (click)="scrollToSection('footer')"><a href="javascript:void(0)" class="en">Contact Us</a><a
+                                href="javascript:void(0)" class="hi">संपर्क
+                                करें</a></li>
+                    </ul>
+                </div>
+
+                <!-- Mobile Menu Toggle -->
+                <div class="mobile_menu_toggle d-block d-lg-none">
+                    <button class="btn btn-link" type="button" (click)="toggleMobileMenu()">
+                        <i class="bi bi-list fs-2 text-main"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu (Hidden by default) -->
+            <!-- Mobile Menu (Hidden by default) -->
+<div class="mobile_menu d-block d-lg-none" [class.show]="isMobileMenuOpen">
+    <ul class="list-unstyled py-3">
+        <li (click)="scrollToSection('about'); closeMobileMenu()">
+            <a class="d-block py-2 en" [class.hide]="currentLanguage !== 'en'">About</a>
+            <a class="d-block py-2 hi" [class.hide]="currentLanguage !== 'hi'">हमारे बारे में</a>
+        </li>
+
+        <li (click)="scrollToSection('guidence'); closeMobileMenu()">
+            <a class="d-block py-2 en" [class.hide]="currentLanguage !== 'en'">Objective</a>
+            <a class="d-block py-2 hi" [class.hide]="currentLanguage !== 'hi'">उद्देश्य</a>
+        </li>
+
+        <li (click)="scrollToSection('materials'); closeMobileMenu()">
+            <a class="d-block py-2 en" [class.hide]="currentLanguage !== 'en'">Syllabus</a>
+            <a class="d-block py-2 hi" [class.hide]="currentLanguage !== 'hi'">पाठ्यक्रम</a>
+        </li>
+
+        <!-- Mentorship Program Mobile -->
+        <li *ngFor="let group of programGroups"><details><summary>{{currentLanguage==='hi'?group.hi:group.label}}</summary><a class="d-block py-2" *ngFor="let program of groupPrograms(group)" [routerLink]="['/program',program._id]" (click)="closeMobileMenu()">{{programDisplayName(program)}}</a></details></li>
+
+        <li (click)="scrollToSection('materials'); closeMobileMenu()">
+            <a class="d-block py-2 en" [class.hide]="currentLanguage !== 'en'">Syllabus</a>
+            <a class="d-block py-2 hi" [class.hide]="currentLanguage !== 'hi'">पाठ्यक्रम</a>
+        </li>
+
+        <!-- Free Resources Mobile with Dropdown -->
+        <li class="mobile-dropdown">
+            <a href="javascript:void(0)" class="d-block py-2 en mobile-dropdown-toggle" 
+               [class.hide]="currentLanguage !== 'en'"
+               (click)="toggleMobileDropdown('freeresources')">
+                Resources <i class="bi" [class.bi-chevron-down]="activeMobileDropdown !== 'freeresources'" [class.bi-chevron-up]="activeMobileDropdown === 'freeresources'"></i>
+            </a>
+            <a href="javascript:void(0)" class="d-block py-2 hi mobile-dropdown-toggle" 
+               [class.hide]="currentLanguage !== 'hi'"
+               (click)="toggleMobileDropdown('freeresources')">
+                संसाधन <i class="bi" [class.bi-chevron-down]="activeMobileDropdown !== 'freeresources'" [class.bi-chevron-up]="activeMobileDropdown === 'freeresources'"></i>
+            </a>
+            <div class="mobile-dropdown-content" [class.show]="activeMobileDropdown === 'freeresources'">
+                <ng-container *ngIf="!loadingModules && !modulesError && (!modules || modules.length === 0)">
+                    <a *ngIf="currentLanguage==='en'" class="d-block py-2 ps-4 en disabled text-muted">
+                        <i class="fas fa-folder-open me-1"></i> No resources available
+                    </a>
+                    <a *ngIf="currentLanguage==='hi'" class="d-block py-2 ps-4 hi disabled text-muted">
+                        <i class="fas fa-folder-open me-1"></i> कोई संसाधन उपलब्ध नहीं
+                    </a>
+                </ng-container>
+                <ng-container *ngFor="let module of modules">
+                    <a *ngIf="currentLanguage==='en'" class="d-block py-2 ps-4 en" (click)="openFreeResourceModule(module); closeMobileMenu()">
+                        {{module.name}}
+                    </a>
+                    <a *ngIf="currentLanguage==='hi'" class="d-block py-2 ps-4 hi" (click)="openFreeResourceModule(module); closeMobileMenu()">
+                        {{module.nameHi || module.name}}
+                    </a>
+                </ng-container>
+                <a href="javascript:void(0)" *ngIf="currentLanguage === 'en'" class="d-block py-2 ps-4 en free-quiz" (click)="openFreeQuiz(); closeMobileMenu()">
+                    Quiz
+                </a>
+                <a href="javascript:void(0)" *ngIf="currentLanguage === 'hi'" class="d-block py-2 ps-4 hi free-quiz" (click)="openFreeQuiz(); closeMobileMenu()">
+                    क्विज़
+                </a>
+            </div>
+        </li>
+
+        <li>
+            <a routerLink="/careers-page" (click)="closeMobileMenu()" class="d-block py-2 en" [class.hide]="currentLanguage !== 'en'">Career</a>
+            <a routerLink="/careers-page" (click)="closeMobileMenu()" class="d-block py-2 hi" [class.hide]="currentLanguage !== 'hi'">करियर</a>
+        </li>
+
+        <li (click)="scrollToSection('footer'); closeMobileMenu()">
+            <a class="d-block py-2 en" [class.hide]="currentLanguage !== 'en'">Contact Us</a>
+            <a class="d-block py-2 hi" [class.hide]="currentLanguage !== 'hi'">संपर्क करें</a>
+        </li>
+    </ul>
+</div>
+
+            <!-- News Scroll -->
+            <!-- <div class="col-12 d-none d-md-block">
+                <div class="news_scroll mt-2">
+                    <div class="news_head d-flex align-items-center">
+                        <span class="d-flex align-items-center gap-2">
+                            <i class="bi bi-newspaper me-1"></i>
+                            <p class="p-0 w-auto en">News</p>
+                            <p class="p-0 w-auto hi">समाचार</p>
+                        </span>
+                        <marquee behavior="" direction="">
+                            <span class="en">Welcome to ThinkCivil IAS - Your partner in UPSC preparation
+                                journey!</span>
+                            <span class="hi">थिंकसिविल आईएएस में आपका स्वागत है - यूपीएससी की तैयारी की यात्रा में आपका
+                                साथी!</span>
+                        </marquee>
+                    </div>
+                </div>
+            </div> -->
+            <div class="col-12 d-none d-md-block" *ngIf="activeNews">
+                <div class="news_scroll mt-2">
+                    <div class="news_head d-flex align-items-center">
+                        <span class="d-flex align-items-center gap-2">
+                            <i class="bi bi-newspaper me-1"></i>
+                            <p class="p-0 w-auto en">News</p>
+                            <p class="p-0 w-auto hi">समाचार</p>
+                        </span>
+                        <marquee behavior="" direction="">
+                            <span class="en">{{ activeNews.text }}</span>
+                            <span class="hi">{{ activeNews.textHi }}</span>
+                        </marquee>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<ng-template #announcementDialog>
+    <div class="announcement-dialog-overlay" (click)="closeAnnouncements()">
+        <div class="announcement-dialog" (click)="$event.stopPropagation()">
+            <!-- Dialog Header -->
+            <div class="dialog-header">
+                <h3>
+                    <span class="en">Announcements</span>
+                    <span class="hi">घोषणाएं</span>
+                    <span *ngIf="announcementCount > 0" class="announcement-count">
+                        ({{announcementCount}})
+                    </span>
+                </h3>
+                <button class="close-btn" (click)="closeAnnouncements()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Dialog Content -->
+            <div class="dialog-content">
+                <div *ngIf="announcements.length > 0; else noAnnouncements">
+                    <div *ngFor="let announcement of announcements" class="announcement-card">
+                        <!-- Announcement Header -->
+                        <div class="announcement-header">
+                            <h4 class="announcement-title">
+                                <span class="en">{{announcement.title}}</span>
+                                <span class="hi">{{announcement.titleHindi}}</span>
+                            </h4>
+                            <!-- <span class="announcement-date">
+                                {{formatDate(announcement.publishDate)}}
+                            </span> -->
+                        </div>
+
+                        <!-- Announcement Body -->
+                        <div class="announcement-body">
+                            <p class="announcement-description">
+                                <span class="en">{{announcement.shortDescription}}</span>
+                                <span class="hi">{{announcement.shortDescriptionHindi}}</span>
+                            </p>
+                        </div>
+
+                        <!-- Announcement Footer -->
+
+                    </div>
+                </div>
+
+                <!-- No Announcements Template -->
+                <ng-template #noAnnouncements>
+                    <div class="no-announcements text-center py-5">
+                        <i class="bi bi-bell-slash-fill text-muted mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="en text-muted mb-2">No announcements available</h5>
+                        <h5 class="hi text-muted mb-2">कोई घोषणा उपलब्ध नहीं है</h5>
+                        <p class="en text-muted">Check back later for updates.</p>
+                        <p class="hi text-muted">अपडेट के लिए बाद में देखें।</p>
+                    </div>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+</ng-template>

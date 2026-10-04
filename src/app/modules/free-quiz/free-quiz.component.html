@@ -1,0 +1,661 @@
+<app-header></app-header>
+
+<div class="free-quiz-container">
+    <!-- Header (hidden once the exam is in progress) -->
+    <div class="quiz-header" *ngIf="!currentQuiz() || quizCompleted()">
+        <div class="quiz-hero-inner">
+            <div class="quiz-hero-icon" aria-hidden="true"><mat-icon>school</mat-icon></div>
+            <div class="quiz-hero-copy">
+                <span class="quiz-eyebrow"><mat-icon>auto_awesome</mat-icon> Practice library</span>
+                <h1>Free Quizzes</h1>
+                <p>Pick a quiz, challenge yourself, and track your progress.</p>
+            </div>
+            <div class="quiz-hero-count" *ngIf="!loading()">
+                <strong>{{ quizzes().length }}</strong>
+                <span>{{ quizzes().length === 1 ? 'quiz available' : 'quizzes available' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Info Form (Shows before quiz starts) -->
+    <div *ngIf="showUserInfoForm()" class="user-info-form">
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title>Enter Your Information</mat-card-title>
+                <mat-card-subtitle>This information will be displayed on the leaderboard</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+                <form [formGroup]="userInfoForm" class="info-form">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Full Name *</mat-label>
+                        <input matInput formControlName="name" placeholder="Enter your full name">
+                        <mat-icon matSuffix>person</mat-icon>
+                        <mat-error *ngIf="userInfoForm.get('name')?.hasError('required')">
+                            Name is required
+                        </mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Email *</mat-label>
+                        <input matInput formControlName="email" placeholder="Enter your email" type="email">
+                        <mat-icon matSuffix>email</mat-icon>
+                        <mat-error *ngIf="userInfoForm.get('email')?.hasError('required')">
+                            Email is required
+                        </mat-error>
+                        <mat-error *ngIf="userInfoForm.get('email')?.hasError('email')">
+                            Please enter a valid email
+                        </mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Phone Number *</mat-label>
+                        <input matInput formControlName="phone" placeholder="Enter 10-digit phone number">
+                        <mat-icon matSuffix>phone</mat-icon>
+                        <mat-error *ngIf="userInfoForm.get('phone')?.hasError('required')">
+                            Phone number is required
+                        </mat-error>
+                        <mat-error *ngIf="userInfoForm.get('phone')?.hasError('pattern')">
+                            Please enter a valid 10-digit phone number
+                        </mat-error>
+                    </mat-form-field>
+                </form>
+            </mat-card-content>
+
+            <mat-card-actions align="end">
+                <button mat-button (click)="restartQuiz()">Cancel</button>
+                <button mat-raised-button color="primary" (click)="submitUserInfo()" [disabled]="!userInfoForm.valid">
+                    Start Quiz
+                </button>
+            </mat-card-actions>
+        </mat-card>
+    </div>
+
+    <!-- Quiz List (Shows when no quiz is active) -->
+    <div *ngIf="!currentQuiz() && !showUserInfoForm()">
+        <!-- Loading State -->
+        <div *ngIf="loading()" class="loading">
+            <mat-spinner diameter="50"></mat-spinner>
+            <p>Loading quizzes...</p>
+        </div>
+
+        <!-- No Quizzes State -->
+        <div *ngIf="!loading() && quizzes().length === 0" class="no-quizzes">
+            <mat-card>
+                <mat-card-content>
+                    <mat-icon class="no-quizzes-icon">quiz</mat-icon>
+                    <h3>No quizzes available</h3>
+                    <p>Check back later for new quizzes!</p>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <!-- Quizzes Grid -->
+        <div *ngIf="!loading() && quizzes().length > 0" class="quizzes-grid">
+            <mat-card *ngFor="let quiz of quizzes()" class="quiz-card">
+                <div class="quiz-card-heading">
+                    <div class="quiz-card-icon" aria-hidden="true"><mat-icon>quiz</mat-icon></div>
+                    <div class="quiz-card-title">
+                        <span class="quiz-card-kicker">Knowledge check</span>
+                        <h2>{{ quiz.title }}</h2>
+                    </div>
+                    <span class="quiz-free-label"><mat-icon>check_circle</mat-icon> Free</span>
+                </div>
+
+                <mat-card-content>
+                    <p class="quiz-description">{{ quiz.description || 'Test your knowledge with this quiz!' }}</p>
+                    <div class="quiz-info">
+                        <div class="quiz-info-item">
+                            <mat-icon aria-hidden="true">help_outline</mat-icon>
+                            <span><strong>{{ quiz.questionUids?.length || 0 }}</strong><small>Questions</small></span>
+                        </div>
+                        <div class="quiz-info-item">
+                            <mat-icon aria-hidden="true">schedule</mat-icon>
+                            <span><strong>Anytime</strong><small>Self-paced</small></span>
+                        </div>
+                    </div>
+                </mat-card-content>
+
+                <mat-card-actions>
+                    <button mat-stroked-button (click)="viewLeaderboard(quiz._id)" class="leaderboard-btn">
+                        <mat-icon>leaderboard</mat-icon>
+                        Leaderboard
+                    </button>
+                    <button mat-raised-button color="primary" (click)="startQuiz(quiz)" class="start-quiz-btn">
+                        <mat-icon>play_arrow</mat-icon>
+                        Start quiz
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+        </div>
+    </div>
+
+    <!-- Quiz Taking Interface -->
+    <div *ngIf="currentQuiz() && !quizCompleted() && !showUserInfoForm() && !submissionError()" class="quiz-taking">
+        <!-- Loading Quiz -->
+        <div *ngIf="quizLoading()" class="quiz-loading">
+            <mat-spinner diameter="50"></mat-spinner>
+            <p>Loading quiz...</p>
+        </div>
+
+        <!-- Quiz Content -->
+        <!-- Quiz Content -->
+<div *ngIf="!quizLoading()" class="quiz-content">
+    <!-- Quiz Header -->
+    <div class="quiz-header-bar">
+        <div class="quiz-title-section">
+            <button mat-icon-button (click)="restartQuiz()" class="back-btn">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <div>
+                <h2>{{ currentQuiz()?.title }}</h2>
+                <p class="quiz-description">{{ currentQuiz()?.description }}</p>
+            </div>
+
+            <div class="quiz-stats-bar">
+                <button mat-button (click)="toggleLanguage()" class="language-toggle">
+                <mat-icon>language</mat-icon>
+                <span>
+                    Currently in <strong>{{ getCurrentLanguageText() }}</strong>
+                    · tap to change
+                </span>
+            </button>
+                <div class="stat">
+                    <mat-icon>help_outline</mat-icon>
+                    <span>Question {{ currentQuestionNumber() }} of {{ quizQuestions().length }}</span>
+                </div>
+                <div class="stat">
+                    <mat-icon>timer</mat-icon>
+                    <span>Time: {{ formatTime(elapsedTime()) }}</span>
+                </div>
+                <div class="stat">
+                    <mat-icon>check_circle</mat-icon>
+                    <span>Answered: {{ answeredCount() }}/{{ quizQuestions().length }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="question-tabs-container">
+            <div class="question-tabs">
+                <button 
+                    *ngFor="let question of quizQuestions(); let i = index" 
+                    class="question-tab" 
+                    [class.answered]="answers()[i].selectedOption !== null"
+                    [class.active]="activeQuestionIndex() === i"
+                    (click)="scrollToQuestion(i)">
+                    {{ i + 1 }}
+                </button>
+            </div>
+            <div class="tab-legend">
+                <div class="legend-item">
+                    <span class="legend-dot answered"></span>
+                    <span>Answered</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot unanswered"></span>
+                    <span>Unanswered</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot active"></span>
+                    <span>Current View</span>
+                </div>
+            </div>
+        </div> &nbsp;
+            
+
+            
+        
+        
+    </div>
+
+    <!-- Quiz Questions -->
+    <div class="questions-container" #questionsContainer>
+        <div *ngFor="let question of quizQuestions(); let i = index" 
+             class="question-card" 
+             [id]="'question-' + i"
+             [class.active-question]="activeQuestionIndex() === i">
+            <div class="question-header">
+                <div class="question-title-section">
+                    <h3 class="question-number">Question {{ i + 1 }}</h3>
+                </div>
+                <span class="question-points">1 point</span>
+                <span class="question-status" [class.answered]="answers()[i].selectedOption !== null">
+                    <mat-icon>{{ answers()[i].selectedOption !== null ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                    {{ answers()[i].selectedOption !== null ? 'Answered' : 'Not Answered' }}
+                </span>
+            </div>
+
+            <div class="question-content">
+                <div class="question-text" [innerHTML]="getQuestionText(question.question)"></div>
+
+                <div class="options-container">
+                    <mat-radio-group [(ngModel)]="answers()[i].selectedOption"
+                        [ngModelOptions]="{standalone: true}">
+                        <div *ngFor="let option of question.options; let j = index" class="option-item">
+                            <mat-radio-button [value]="j" (change)="onOptionSelect(i, j)" class="option-radio">
+                                <div class="option-content">
+                                    <span class="option-letter">{{ getOptionLetter(j) }}</span>
+                                    <span class="option-text" [innerHTML]="getOptionText(option)"></span>
+                                </div>
+                            </mat-radio-button>
+                        </div>
+                    </mat-radio-group>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Actions -->
+    <div class="quiz-actions">
+        <div class="progress-info">
+            <span>{{ answeredCount() }} of {{ quizQuestions().length }} answered</span>
+            <mat-progress-bar mode="determinate" [value]="progressPercentage()">
+            </mat-progress-bar>
+        </div>
+
+        <div class="action-buttons">
+            <button mat-raised-button color="primary" (click)="submitQuiz()" [disabled]="submitting()"
+                class="submit-btn">
+                <mat-spinner diameter="20" *ngIf="submitting()"></mat-spinner>
+                <mat-icon *ngIf="!submitting()">send</mat-icon>
+                {{ submitting() ? 'Submitting...' : 'Submit Quiz' }}
+            </button>
+        </div>
+    </div>
+</div>
+    </div>
+
+    <div *ngIf="submissionError()" class="submission-error-card">
+        <div class="submission-error-icon">
+            <mat-icon>task_alt</mat-icon>
+        </div>
+        <span class="submission-error-eyebrow">Submission status</span>
+        <h2>Quiz Already Submitted</h2>
+        <p class="submission-error-message">{{ submissionError() }}</p>
+        <p class="submission-error-help">Your previous attempt has already been recorded. You can return to the quiz list and choose another quiz.</p>
+        <button mat-raised-button color="primary" (click)="restartQuiz()">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Free Quizzes
+        </button>
+    </div>
+
+    <!-- Quiz Results -->
+    <!-- Quiz Results -->
+<div *ngIf="quizCompleted()" class="quiz-results">
+    <div class="results-header">
+        <h2>Quiz Completed!</h2>
+        <p>Thank you for taking the quiz</p>
+        
+        <!-- Language Toggle -->
+        <!-- <div class="language-toggle">
+            <button mat-stroked-button (click)="toggleLanguage()" class="lang-btn">
+                <mat-icon>language</mat-icon>
+                {{ getCurrentLanguageText() }}
+            </button>
+        </div> -->
+    </div>
+
+    <div class="results-content">
+        <!-- Score Card -->
+        <mat-card class="score-card">
+            <mat-card-header>
+                <mat-card-title>Your Score</mat-card-title>
+                <mat-card-subtitle>{{ currentQuiz()?.title }}</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+                <div class="score-display">
+                    <div class="score-circle">
+                        <span class="score-number">{{ quizResult()?.score }}/{{ quizResult()?.totalQuestions }}</span>
+                        <span class="score-percentage">{{ getScorePercentage(quizResult()?.score || 0,
+                            quizResult()?.totalQuestions || 0) }}%</span>
+                    </div>
+
+                    <div class="score-details">
+                        <div class="score-item">
+                            <mat-icon>check_circle</mat-icon>
+                            <span>Correct: {{ quizResult()?.correctAnswers }}</span>
+                        </div>
+                        <div class="score-item">
+                            <mat-icon>cancel</mat-icon>
+                            <span>Wrong: {{ quizResult()?.wrongAnswers }}</span>
+                        </div>
+                        <div class="score-item">
+                            <mat-icon>timer</mat-icon>
+                            <span>Time: {{ formatTime(quizResult()?.timeTaken || 0) }}</span>
+                        </div>
+                        <div class="score-item">
+                            <mat-icon>emoji_events</mat-icon>
+                            <span>Rank: {{ quizResult()?.rank }} of {{ quizResult()?.totalParticipants }}</span>
+                        </div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Detailed Results Section -->
+        <mat-card class="detailed-results-card" *ngIf="quizResult()?.questionOverview">
+            <mat-card-header>
+                <mat-card-title>Detailed Results</mat-card-title>
+                <mat-card-subtitle>Review your answers</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+                <div class="questions-review">
+                    <!-- Performance Summary -->
+                    <div class="performance-summary">
+                        <div class="performance-item correct">
+                            <mat-icon>check_circle</mat-icon>
+                            <div>
+                                <div class="performance-count">{{ quizResult()?.correctAnswers }}</div>
+                                <div class="performance-label">Correct Answers</div>
+                            </div>
+                        </div>
+                        <div class="performance-item wrong">
+                            <mat-icon>cancel</mat-icon>
+                            <div>
+                                <div class="performance-count">{{ quizResult()?.wrongAnswers }}</div>
+                                <div class="performance-label">Wrong Answers</div>
+                            </div>
+                        </div>
+                        <div class="performance-item score">
+                            <mat-icon>star</mat-icon>
+                            <div>
+                                <div class="performance-count">{{ quizResult()?.score }}/{{ quizResult()?.totalQuestions }}</div>
+                                <div class="performance-label">Final Score</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Question-by-Question Review -->
+                    <div class="question-review-section">
+    <div class="review-header-flex">
+        <h3>Question-by-Question Review</h3>
+        <button mat-stroked-button (click)="toggleLanguage()" class="lang-btn-inline">
+            <mat-icon>language</mat-icon>
+            {{ getCurrentLanguageText() }}
+        </button>
+    </div>
+    <p class="review-help">Green indicates correct answers, red indicates incorrect answers</p>
+                        
+                        
+                        <mat-accordion multi>
+                            <mat-expansion-panel *ngFor="let question of quizResult()?.questionOverview; let i = index" 
+                                [class.correct-question]="question.isCorrect"
+                                [class.wrong-question]="!question.isCorrect">
+                                <mat-expansion-panel-header>
+                                    <mat-panel-title>
+                                        <div class="question-header-title">
+                                            <span class="question-number">Q{{ i + 1 }}</span>
+                                            <span class="question-status" [class.correct]="question.isCorrect" [class.wrong]="!question.isCorrect">
+                                                <mat-icon>{{ question.isCorrect ? 'check_circle' : 'cancel' }}</mat-icon>
+                                                {{ question.isCorrect ? 'Correct' : 'Wrong' }}
+                                            </span>
+                                            <span class="question-point" *ngIf="question.isCorrect">
+                                                <mat-icon>stars</mat-icon>
+                                                +1 point
+                                            </span>
+                                        </div>
+                                    </mat-panel-title>
+                                    <mat-panel-description>
+                                        <span class="question-summary">
+                                            Your answer: <strong>{{ question.selectedOptionLetter || 'Not answered' }}</strong>
+                                            | Correct answer: <strong>{{ question.correctOptionLetter }}</strong>
+                                        </span>
+                                    </mat-panel-description>
+                                </mat-expansion-panel-header>
+
+                                <div class="question-details">
+                                    <!-- Question Content with Language Toggle -->
+                                    <div class="question-content">
+                                        <div class="question-text">
+                                            <div [innerHTML]="getQuestionDisplayText(question.questionText)"></div>
+                                        </div>
+                                        
+                                    </div>
+                                    
+                                    <!-- Options Review with Bilingual Support -->
+                                    <div class="options-review">
+                                        <div *ngFor="let option of question.options; let j = index" 
+                                            class="option-review"
+                                            [class.correct-option]="option.isCorrect"
+                                            [class.selected-option]="option.isSelected"
+                                            [class.wrong-selection]="option.isSelected && !option.isCorrect">
+                                            <div class="option-marker">
+                                                <span class="option-letter">{{ getOptionLetter(j) }}</span>
+                                                <div class="option-icons">
+                                                    <mat-icon *ngIf="option.isCorrect" class="correct-icon">check</mat-icon>
+                                                    <mat-icon *ngIf="option.isSelected && !option.isCorrect" class="wrong-icon">close</mat-icon>
+                                                </div>
+                                            </div>
+                                            <div class="option-text">
+                                                <div [innerHTML]="getOptionDisplayText(option.optionText)"></div>
+                                            </div>
+                                            <div class="option-status">
+                                                <span *ngIf="option.isCorrect" class="status-correct">
+                                                    {{ currentLanguage() === 'en' ? 'Correct Answer' : 'सही उत्तर' }}
+                                                </span>
+                                                <span *ngIf="option.isSelected && !option.isCorrect" class="status-wrong">
+                                                    {{ currentLanguage() === 'en' ? 'Your Answer' : 'आपका उत्तर' }}
+                                                </span>
+                                                <span *ngIf="option.isSelected && option.isCorrect" class="status-correct-selected">
+                                                    {{ currentLanguage() === 'en' ? 'Your Correct Answer' : 'आपका सही उत्तर' }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Description -->
+                                    <div *ngIf="getQuestionDescription(question.description)" 
+                                         class="question-description">
+                                        <strong>{{ currentLanguage() === 'en' ? 'Description:' : 'विवरण:' }}</strong>
+                                        <div [innerHTML]="getQuestionDescription(question.description)"></div>
+                                    </div>
+                                    <!-- Bilingual Answer Summary -->
+                                    <div class="answer-summary">
+                                        <div class="summary-card">
+                                            <mat-icon>person</mat-icon>
+                                            <div>
+                                                <div class="summary-title">{{ currentLanguage() === 'en' ? 'Your Answer' : 'आपका उत्तर' }}</div>
+                                                <div class="summary-value">{{ question.selectedOptionLetter || (currentLanguage() === 'en' ? 'Not answered' : 'उत्तर नहीं दिया') }}</div>
+                                                <!-- <div class="summary-hint" *ngIf="question.selectedOption >= 0">
+                                                    {{ getOptionDisplayText(question.options[question.selectedOption].optionText) }}
+                                                </div> -->
+                                            </div>
+                                        </div>
+                                        <div class="summary-card">
+                                            <mat-icon>check</mat-icon>
+                                            <div>
+                                                <div class="summary-title">{{ currentLanguage() === 'en' ? 'Correct Answer' : 'सही उत्तर' }}</div>
+                                                <div class="summary-value">{{ question.correctOptionLetter }}</div>
+                                                <!-- <div class="summary-hint" *ngIf="question.correctOption >= 0">
+                                                    {{ getOptionDisplayText(question.options[question.correctOption].optionText) }}
+                                                </div> -->
+                                            </div>
+                                        </div>
+                                        <div class="summary-card">
+                                            <mat-icon>emoji_events</mat-icon>
+                                            <div>
+                                                <div class="summary-title">{{ currentLanguage() === 'en' ? 'Points' : 'अंक' }}</div>
+                                                <div class="summary-value">{{ question.isCorrect ? '+1' : '0' }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Language Note -->
+                                    <div class="language-note" *ngIf="hasBilingualContent(question)">
+                                        <mat-icon>translate</mat-icon>
+                                        <div>
+                                            <strong>{{ currentLanguage() === 'en' ? 'Note:' : 'ध्यान दें:' }}</strong> 
+                                            {{ currentLanguage() === 'en' 
+                                                ? 'This question is available in both English and Hindi. You can switch languages using the button above.'
+                                                : 'यह प्रश्न अंग्रेजी और हिंदी दोनों में उपलब्ध है। आप ऊपर दिए गए बटन का उपयोग करके भाषा बदल सकते हैं।' }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Explanation if available -->
+                                    <div *ngIf="question.explanation" class="explanation-section">
+                                        <mat-icon>info</mat-icon>
+                                        <div>
+                                            <strong>{{ currentLanguage() === 'en' ? 'Explanation:' : 'व्याख्या:' }}</strong>
+                                            <p>{{ question.explanation }}</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Bilingual Feedback -->
+                                    <div class="question-feedback" [class.correct-feedback]="question.isCorrect" [class.wrong-feedback]="!question.isCorrect">
+                                        <mat-icon>{{ question.isCorrect ? 'thumb_up' : 'lightbulb' }}</mat-icon>
+                                        <div>
+                                            <strong>{{ getFeedbackTitle(question.isCorrect) }}</strong>
+                                            <p>{{ getFeedbackMessage(question.isCorrect) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </mat-expansion-panel>
+                        </mat-accordion>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Leaderboard -->
+        <mat-card class="leaderboard-card">
+            <mat-card-header>
+                <mat-card-title>{{ currentLanguage() === 'en' ? 'Leaderboard' : 'लीडरबोर्ड' }}</mat-card-title>
+                <mat-card-subtitle>{{ currentLanguage() === 'en' ? 'Top 10 performers' : 'शीर्ष 10 प्रदर्शनकर्ता' }}</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+                <div class="leaderboard-table">
+                    <table mat-table [dataSource]="leaderboard()" class="mat-elevation-z0">
+                        <!-- Rank Column -->
+                        <ng-container matColumnDef="rank">
+                            <th mat-header-cell *matHeaderCellDef> {{ currentLanguage() === 'en' ? 'Rank' : 'रैंक' }} </th>
+                            <td mat-cell *matCellDef="let element">
+                                <div class="rank-badge" [class.top-three]="element.rank <= 3">
+                                    {{ element.rank }}
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Name Column -->
+                        <ng-container matColumnDef="name">
+                            <th mat-header-cell *matHeaderCellDef> {{ currentLanguage() === 'en' ? 'Name' : 'नाम' }} </th>
+                            <td mat-cell *matCellDef="let element">
+                                <div class="user-name">{{ element.name }}</div>
+                                <!-- <div class="user-email">{{ element.email }}</div> -->
+                            </td>
+                        </ng-container>
+
+                        <!-- Score Column -->
+                        <ng-container matColumnDef="score">
+                            <th mat-header-cell *matHeaderCellDef> {{ currentLanguage() === 'en' ? 'Score' : 'स्कोर' }} </th>
+                            <td mat-cell *matCellDef="let element" class="score-cell">
+                                <span class="score-value">{{ element.score }}</span>
+                                <span class="total-questions">/{{ quizResult()?.totalQuestions }}</span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Time Column -->
+                        <ng-container matColumnDef="time">
+                            <th mat-header-cell *matHeaderCellDef> {{ currentLanguage() === 'en' ? 'Time' : 'समय' }} </th>
+                            <td mat-cell *matCellDef="let element"> {{ formatTime(element.timeTaken) }} </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="['rank', 'name', 'score', 'time']"></tr>
+                        <tr mat-row *matRowDef="let row; columns: ['rank', 'name', 'score', 'time'];"
+                            [class.current-user]="row.email === userInfoForm.value.email"></tr>
+                    </table>
+                </div>
+
+                <div *ngIf="leaderboard().length === 0" class="no-leaderboard">
+                    <mat-icon>leaderboard</mat-icon>
+                    <p>{{ currentLanguage() === 'en' ? 'No submissions yet. Be the first!' : 'अभी तक कोई प्रस्तुतियाँ नहीं हैं। पहले बनें!' }}</p>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Performance Insights -->
+        <mat-card class="insights-card">
+            <mat-card-header>
+                <mat-card-title>{{ currentLanguage() === 'en' ? 'Performance Insights' : 'प्रदर्शन अंतर्दृष्टि' }}</mat-card-title>
+                <mat-card-subtitle>{{ currentLanguage() === 'en' ? 'Based on your results' : 'आपके परिणामों के आधार पर' }}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="insights-content">
+                    <div class="insight-item" [class.good]="scorePercentage() >= 80" [class.average]="scorePercentage() >= 50 && scorePercentage() < 80" [class.poor]="scorePercentage() < 50">
+                        <mat-icon>{{ scorePercentage() >= 80 ? 'emoji_events' : scorePercentage() >= 50 ? 'sentiment_satisfied' : 'sentiment_dissatisfied' }}</mat-icon>
+                        <div>
+                            <div class="insight-title">{{ currentLanguage() === 'en' ? 'Overall Performance' : 'कुल प्रदर्शन' }}</div>
+                            <div class="insight-text">{{ getPerformanceInsight(scorePercentage()) }}</div>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <mat-icon>speed</mat-icon>
+                        <div>
+                            <div class="insight-title">{{ currentLanguage() === 'en' ? 'Time Management' : 'समय प्रबंधन' }}</div>
+                            <div class="insight-text">{{ getTimeInsight(quizResult()?.timeTaken || 0, quizResult()?.totalQuestions || 0) }}</div>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <mat-icon>trending_up</mat-icon>
+                        <div>
+                            <div class="insight-title">{{ currentLanguage() === 'en' ? 'Improvement Tips' : 'सुधार सुझाव' }}</div>
+                            <div class="insight-text">{{ getImprovementTips(scorePercentage()) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Action Buttons -->
+        <div class="results-actions">
+            <!-- <button mat-stroked-button (click)="downloadResults()">
+                <mat-icon>download</mat-icon>
+                {{ currentLanguage() === 'en' ? 'Download Results' : 'परिणाम डाउनलोड करें' }}
+            </button> -->
+            <button mat-stroked-button (click)="restartQuiz()">
+                <mat-icon>replay</mat-icon>
+                {{ currentLanguage() === 'en' ? 'Retake This Quiz' : 'इस क्विज को फिर से लें' }}
+            </button>
+            <button mat-raised-button color="primary" (click)="restartQuiz()">
+                <mat-icon>home</mat-icon>
+                {{ currentLanguage() === 'en' ? 'Back to Quizzes' : 'क्विज़ पर वापस जाएं' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+    <!-- Info Footer -->
+    <div class="info-footer">
+        <mat-card>
+            <mat-card-content>
+                <div class="footer-content">
+                    <div class="footer-item">
+                        <mat-icon>quiz</mat-icon>
+                        <div>
+                            <h4>Free Quizzes</h4>
+                            <p>No registration required. Test your knowledge anytime.</p>
+                        </div>
+                    </div>
+                    <div class="footer-item">
+                        <mat-icon>leaderboard</mat-icon>
+                        <div>
+                            <h4>Live Leaderboard</h4>
+                            <p>See how you rank against other participants.</p>
+                        </div>
+                    </div>
+                    <div class="footer-item">
+                        <mat-icon>timer</mat-icon>
+                        <div>
+                            <h4>Track Your Time</h4>
+                            <p>Complete quizzes at your own pace.</p>
+                        </div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>
+
+<app-public-footer></app-public-footer>

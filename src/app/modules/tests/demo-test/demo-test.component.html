@@ -1,0 +1,304 @@
+<div class="student-demo-tests-container">
+  <div class="page-header">
+    <div class="header-content">
+      <span class="eyebrow">PRACTICE ZONE</span>
+      <h1>Practice Demo Tests</h1>
+      <p class="subtitle">Test your knowledge with unlimited practice attempts</p>
+    </div>
+    
+    <div class="quick-stats" *ngIf="completedTests().length > 0">
+      <div class="stat-card">
+        <mat-icon>check_circle</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ completedTests().length }}</span>
+          <span class="stat-label">Tests Completed</span>
+        </div>
+      </div>
+      <!-- <div class="stat-card">
+        <mat-icon>emoji_events</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ averageScore() }}%</span>
+          <span class="stat-label">Avg. Score</span>
+        </div>
+      </div> -->
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="search-filters">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search demo tests</mat-label>
+        <input matInput [(ngModel)]="searchTerm" (ngModelChange)="filterTests()" 
+               placeholder="Search by title or description...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="sort-field">
+        <mat-label>Sort by</mat-label>
+        <mat-select [(value)]="sortBy" (selectionChange)="filterTests()">
+          <mat-option value="newest">Newest First</mat-option>
+          <mat-option value="oldest">Oldest First</mat-option>
+          <mat-option value="title">Title A-Z</mat-option>
+          <mat-option value="duration">Duration (Shortest)</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="filter-chips">
+      <button class="filter-chip" [class.active]="selectedFilter === 'all'" (click)="setFilter('all')">
+        All Tests
+      </button>
+      <button class="filter-chip" [class.active]="selectedFilter === 'completed'" (click)="setFilter('completed')">
+        Completed
+      </button>
+      <button class="filter-chip" [class.active]="selectedFilter === 'not-started'" (click)="setFilter('not-started')">
+        Not Started
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading demo tests...</p>
+  </div>
+
+  <!-- Tests Grid -->
+  <div *ngIf="!loading() && filteredTests().length > 0" class="tests-grid">
+    <mat-card *ngFor="let test of filteredTests()" class="demo-test-card" 
+              [class.completed]="test.submitted">
+      
+      <!-- Test Status Badge -->
+      <div class="test-status-badge" [class.completed]="test.submitted" 
+           [class.available]="!test.submitted && test.isActive"
+           [class.inactive]="!test.isActive">
+        <mat-icon>
+          {{ test.submitted ? 'check_circle' : 
+             test.isActive ? 'play_circle' : 'pause_circle' }}
+        </mat-icon>
+        <span>
+          {{ test.submitted ? 'Completed' : 
+             test.isActive ? 'Available' : 'Coming Soon' }}
+        </span>
+      </div>
+
+      <mat-card-header>
+        <mat-card-title>{{ test.title }}</mat-card-title>
+        <mat-card-subtitle>
+          <div class="test-meta">
+            <span class="meta-item">
+              <mat-icon>timer</mat-icon>
+              {{ test.duration }} minutes
+            </span>
+            <span class="meta-item">
+              <mat-icon>quiz</mat-icon>
+              {{ test.questionUids?.length || 0 }} questions
+            </span>
+            <span class="meta-item">
+              <mat-icon>grade</mat-icon>
+              {{ test.marksPerQuestion }} marks each
+            </span>
+          </div>
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p class="test-description">{{ test.description || 'No description available' }}</p>
+        
+        <!-- Test Details -->
+        <div class="test-details">
+          <div class="detail-item">
+            <span class="detail-label"><mat-icon>calculate</mat-icon>Total Marks:</span>
+            <span class="detail-value">{{ (test.marksPerQuestion * test.questionUids?.length) || 0 }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label"><mat-icon>remove</mat-icon>Negative Marks:</span>
+            <span class="detail-value">{{ test.negativeMarks || 0 }}</span>
+          </div>
+        </div>
+
+        <!-- Score Badge for Completed Tests -->
+        <!-- Score Badge for Completed Tests -->
+<div class="score-badge" *ngIf="test.submitted && test.result">
+  <div class="score-circle" [style.background]="getScoreColor(test.result.percentage)">
+    <span class="score-value">{{ test.result.percentage }}%</span>
+  </div>
+  <div class="score-details">
+    <span class="score-label">Your Score</span>
+    <span class="score-numbers">{{ test.result.score }}/{{ test.result.totalMarks }}</span>
+  </div>
+</div>
+
+        <!-- Instructions Preview -->
+        <div class="instructions-preview" *ngIf="test.introPage && !test.submitted">
+          <mat-icon>info</mat-icon>
+          <div class="preview-text">{{ getIntroPreview(test.introPage) }}</div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <div class="test-actions">
+          <!-- For completed tests -->
+          <ng-container *ngIf="test.submitted">
+            <button mat-stroked-button color="accent" (click)="viewResults(test)">
+              <mat-icon>analytics</mat-icon>
+              View Results
+            </button>
+            <button mat-raised-button color="primary" (click)="retakeTest(test)">
+              <mat-icon>replay</mat-icon>
+              Retake Test
+            </button>
+          </ng-container>
+
+          <!-- For available tests -->
+          <ng-container *ngIf="!test.submitted && test.isActive">
+            <button mat-raised-button color="primary" (click)="showTestInstructions(test)">
+              <mat-icon>play_circle_filled</mat-icon>
+              Start Practice
+            </button>
+          </ng-container>
+
+          <!-- For inactive tests -->
+          <ng-container *ngIf="!test.isActive && !test.submitted">
+            <button mat-stroked-button disabled>
+              <mat-icon>schedule</mat-icon>
+              Coming Soon
+            </button>
+          </ng-container>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- No Tests State -->
+  <div *ngIf="!loading() && filteredTests().length === 0" class="no-tests-state">
+    <mat-card>
+      <mat-card-content>
+        <mat-icon class="empty-icon">quiz</mat-icon>
+        <h3>No demo tests available</h3>
+        <p *ngIf="searchTerm || selectedFilter !== 'all'">
+          No tests match your current filters. Try adjusting your search criteria.
+        </p>
+        <p *ngIf="!searchTerm && selectedFilter === 'all'">
+          There are no demo tests available at the moment. Please check back later.
+        </p>
+        <button mat-stroked-button color="primary" (click)="resetFilters()">
+          <mat-icon>refresh</mat-icon>
+          Reset Filters
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<!-- Test Instructions Modal -->
+<div class="instructions-modal-overlay" *ngIf="showInstructionsModal">
+  <div class="instructions-modal">
+    <div class="modal-header">
+      <div class="header-content">
+        <h2>{{ selectedTest?.title }}</h2>
+        <div class="test-quick-info">
+          <span><mat-icon>timer</mat-icon> {{ selectedTest?.duration }} minutes</span>
+          <span><mat-icon>quiz</mat-icon> {{ selectedTest?.questionUids?.length }} questions</span>
+          <span><mat-icon>grade</mat-icon> {{ selectedTest?.marksPerQuestion }} marks each</span>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeInstructionsModal()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Language Toggle for Instructions -->
+      <div class="language-toggle">
+        <button [class.active]="instructionsLanguage === 'english'" 
+                (click)="instructionsLanguage = 'english'">English</button>
+        <button [class.active]="instructionsLanguage === 'hindi'" 
+                (click)="instructionsLanguage = 'hindi'">हिन्दी</button>
+      </div>
+
+      <!-- Instructions Content -->
+      <div class="instructions-content">
+        <h3>{{ instructionsLanguage === 'english' ? 'Test Instructions' : 'परीक्षा निर्देश' }}</h3>
+        
+        <!-- Custom Intro Page -->
+        <div *ngIf="selectedTest?.introPage" class="custom-intro" 
+             [innerHTML]="selectedTest?.introPage">
+        </div>
+
+        <!-- Default Instructions -->
+        <div class="default-instructions">
+          <div class="instruction-item">
+            <mat-icon>fullscreen</mat-icon>
+            <div>
+              <strong>Fullscreen Mode</strong>
+              <p>The test works best in fullscreen mode for better focus</p>
+            </div>
+          </div>
+
+          <div class="instruction-item">
+            <mat-icon>timer</mat-icon>
+            <div>
+              <strong>Time Limit</strong>
+              <p>You have {{ selectedTest?.duration }} minutes to complete the test</p>
+            </div>
+          </div>
+
+          <div class="instruction-item">
+            <mat-icon>repeat</mat-icon>
+            <div>
+              <strong>Unlimited Attempts</strong>
+              <p>You can retake this demo test as many times as you want</p>
+            </div>
+          </div>
+
+          <div class="instruction-item">
+            <mat-icon>keyboard</mat-icon>
+            <div>
+              <strong>Keyboard Shortcuts</strong>
+              <p>Use ← → arrows to navigate, Spacebar to mark for review</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Marking Scheme -->
+        <div class="marking-scheme">
+          <h4>Marking Scheme</h4>
+          <div class="scheme-item positive">
+            <mat-icon>add_circle</mat-icon>
+            <span>Correct Answer: +{{ selectedTest?.marksPerQuestion }} marks</span>
+          </div>
+          <div class="scheme-item negative" *ngIf="selectedTest?.negativeMarks > 0">
+            <mat-icon>remove_circle</mat-icon>
+            <span>Wrong Answer: -{{ selectedTest?.negativeMarks }} marks</span>
+          </div>
+          <div class="scheme-item neutral">
+            <mat-icon>remove</mat-icon>
+            <span>Unattempted: 0 marks</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="agreement-section">
+        <mat-checkbox [(ngModel)]="agreeToInstructions" color="primary">
+          I have read and understood all the instructions
+        </mat-checkbox>
+      </div>
+
+      <div class="action-buttons">
+        <button mat-stroked-button (click)="closeInstructionsModal()">
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" 
+                [disabled]="!agreeToInstructions"
+                (click)="startDemoTest()">
+          <mat-icon>play_circle_filled</mat-icon>
+          Start Practice Test
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

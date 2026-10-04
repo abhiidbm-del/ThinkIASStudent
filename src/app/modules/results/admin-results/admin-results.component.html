@@ -1,0 +1,273 @@
+<!-- admin-results.component.html - UPDATED WITH LANGUAGE SUPPORT -->
+<div class="admin-results-container">
+  <div class="header">
+    <h1>Test Results & Analytics</h1>
+    <p>View student rankings and test performance analytics</p>
+  </div>
+
+  <!-- Test Selection -->
+  <mat-card class="test-selection-card">
+    <mat-card-content>
+      <div class="selection-header">
+        <mat-form-field appearance="outline" class="test-select">
+          <mat-label>Select Test</mat-label>
+          <mat-select [value]="selectedTestId()" (selectionChange)="onTestSelectionChange($event.value)">
+            <mat-option *ngFor="let test of allTests()" [value]="test._id">
+              {{ test.title }} - {{ test.startTime | date:'medium' }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <button *ngIf="selectedTestId() && rankings().length > 0" 
+                mat-raised-button 
+                color="primary" 
+                (click)="exportResults()">
+          <mat-icon>download</mat-icon>
+          Export Results
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading">
+    <mat-spinner></mat-spinner>
+    <p>Loading results...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading() && selectedTestId()">
+    
+    <!-- No Results Message -->
+    <div *ngIf="rankings().length === 0" class="no-results">
+      <mat-card>
+        <mat-card-content>
+          <p>No results available for this test yet.</p>
+          <p>Students need to submit their answers to see results.</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Results Content -->
+    <div *ngIf="rankings().length > 0">
+      <mat-tab-group>
+        <!-- Rankings Tab -->
+        <mat-tab label="Student Rankings">
+          <div class="tab-content">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Student Rankings</mat-card-title>
+                <mat-card-subtitle>
+                  Total Students: {{ rankings().length }}
+                </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <table mat-table [dataSource]="rankings()" class="rankings-table">
+                  
+                  <!-- Rank Column -->
+                  <ng-container matColumnDef="rank">
+                    <th mat-header-cell *matHeaderCellDef>Rank</th>
+                    <td mat-cell *matCellDef="let rank">
+                      <span class="rank-badge" [style.background]="getRankColor(rank.rank)">
+                        {{ rank.rank }}
+                      </span>
+                    </td>
+                  </ng-container>
+
+                  <!-- Student Column -->
+                  <ng-container matColumnDef="student">
+                    <th mat-header-cell *matHeaderCellDef>Student</th>
+                    <td mat-cell *matCellDef="let rank">
+                      <div class="student-info">
+                        <strong>{{ rank.student.fullName }}</strong>
+                        <small>{{ rank.student.email }}</small>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <!-- Score Column -->
+                  <ng-container matColumnDef="score">
+                    <th mat-header-cell *matHeaderCellDef>Score</th>
+                    <td mat-cell *matCellDef="let rank">
+                      {{ rank.score }}/{{ rank.totalMarks }}
+                    </td>
+                  </ng-container>
+
+                  <!-- Percentage Column -->
+                  <ng-container matColumnDef="percentage">
+                    <th mat-header-cell *matHeaderCellDef>Percentage</th>
+                    <td mat-cell *matCellDef="let rank">
+                      <span [class.high-score]="rank.percentage >= 80" 
+                            [class.medium-score]="rank.percentage >= 60 && rank.percentage < 80"
+                            [class.low-score]="rank.percentage < 60">
+                        {{ rank.percentage }}%
+                      </span>
+                    </td>
+                  </ng-container>
+
+                  <!-- Time Taken Column -->
+                  <ng-container matColumnDef="timeTaken">
+                    <th mat-header-cell *matHeaderCellDef>Time Taken</th>
+                    <td mat-cell *matCellDef="let rank">
+                      {{ rank.timeTaken }} seconds
+                    </td>
+                  </ng-container>
+
+                  <!-- Submitted At Column -->
+                  <ng-container matColumnDef="submittedAt">
+                    <th mat-header-cell *matHeaderCellDef>Submitted</th>
+                    <td mat-cell *matCellDef="let rank">
+                      {{ rank.submittedAt | date:'medium' }}
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="rankingColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: rankingColumns;"></tr>
+                </table>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Analytics Tab -->
+        <mat-tab label="Test Analytics">
+          <div class="tab-content">
+            <div *ngIf="analyticsLoading()" class="loading">
+              <mat-spinner></mat-spinner>
+              <p>Loading analytics...</p>
+            </div>
+
+            <div *ngIf="!analyticsLoading() && analytics()">
+              <mat-card class="analytics-card">
+                <mat-card-header>
+                  <mat-card-title>Test Overview - {{ analytics()?.testTitle }}</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="stats-grid">
+                    <div class="stat-item">
+                      <h3>{{ analytics()?.totalStudents }}</h3>
+                      <p>Total Students</p>
+                    </div>
+                    <div class="stat-item">
+                      <h3>{{ analytics()?.averageScore }}</h3>
+                      <p>Average Score</p>
+                    </div>
+                    <div class="stat-item">
+                      <h3>{{ analytics()?.highestScore }}</h3>
+                      <p>Highest Score</p>
+                    </div>
+                    <div class="stat-item">
+                      <h3>{{ analytics()?.lowestScore }}</h3>
+                      <p>Lowest Score</p>
+                    </div>
+                    <div class="stat-item">
+                      <h3>{{ analytics()?.averageTime }}s</h3>
+                      <p>Average Time</p>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Performance Distribution -->
+              <mat-card class="distribution-card" *ngIf="analytics()?.performanceDistribution">
+                <mat-card-header>
+                  <mat-card-title>Performance Distribution</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="distribution-grid">
+                    <div class="dist-item excellent">
+                      <h3>{{ analytics()?.performanceDistribution?.excellent || 0 }}</h3>
+                      <p>Excellent (≥80%)</p>
+                    </div>
+                    <div class="dist-item good">
+                      <h3>{{ analytics()?.performanceDistribution?.good || 0 }}</h3>
+                      <p>Good (60-79%)</p>
+                    </div>
+                    <div class="dist-item average">
+                      <h3>{{ analytics()?.performanceDistribution?.average || 0 }}</h3>
+                      <p>Average (40-59%)</p>
+                    </div>
+                    <div class="dist-item poor">
+                      <h3>{{ analytics()?.performanceDistribution?.poor || 0 }}</h3>
+                      <p>Poor (<40%)</p>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Question-wise Analysis -->
+              <mat-card class="questions-card">
+                <mat-card-header class="questions-card-header">
+                  <mat-card-title>Question-wise Analysis</mat-card-title>
+                  
+                  <!-- Language Switch Toggle -->
+                  <mat-radio-group [(ngModel)]="selectedLanguage" class="language-toggle">
+                    <mat-radio-button value="english">English</mat-radio-button>
+                    <mat-radio-button value="hindi">हिन्दी</mat-radio-button>
+                  </mat-radio-group>
+                </mat-card-header>
+                <mat-card-content>
+                  <table mat-table [dataSource]="analytics()?.questionStats || []" class="questions-table">
+                    
+                    <ng-container matColumnDef="question">
+                      <th mat-header-cell *matHeaderCellDef>Question</th>
+                      <td mat-cell *matCellDef="let stat">
+                        <div class="question-content">
+                          <strong>Q{{ stat.questionIndex }}</strong>
+                          <p class="question-text">{{ getQuestionText(stat.question) }}</p>
+                          
+                          <!-- Description -->
+                          <div *ngIf="hasDescription(stat)" class="description">
+                            <p class="description-text">
+                              <mat-icon class="description-icon">info</mat-icon>
+                              {{ getDescriptionText(stat) }}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="correctAnswers">
+                      <th mat-header-cell *matHeaderCellDef>Correct</th>
+                      <td mat-cell *matCellDef="let stat">
+                        <span class="correct-count">{{ stat.correctAnswers }}</span>
+                      </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="incorrectAnswers">
+                      <th mat-header-cell *matHeaderCellDef>Incorrect</th>
+                      <td mat-cell *matCellDef="let stat">
+                        <span class="incorrect-count">{{ stat.incorrectAnswers }}</span>
+                      </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="correctPercentage">
+                      <th mat-header-cell *matHeaderCellDef>Correct %</th>
+                      <td mat-cell *matCellDef="let stat">
+                        <span [class]="getPercentageClass(stat.correctPercentage)">
+                          {{ stat.correctPercentage }}%
+                        </span>
+                      </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="analyticsColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: analyticsColumns;"></tr>
+                  </table>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  </div>
+
+  <!-- No Test Selected -->
+  <div *ngIf="!loading() && !selectedTestId()" class="no-selection">
+    <mat-card>
+      <mat-card-content>
+        <p>Please select a test to view results and analytics.</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

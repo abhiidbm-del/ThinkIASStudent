@@ -1,0 +1,15 @@
+<div *ngIf="testimonials.length" #reviewSlider class="review_card swiper review_slider">
+  <div class="swiper-wrapper">
+    <div *ngFor="let testimonial of sliderTestimonials" class="swiper-slide p-4 px-5">
+      <div class="review_rate d-flex align-items-center gap-2">
+        <i *ngFor="let star of stars(testimonial.rating)" class="bi bi-star-fill"></i>
+      </div>
+      <div class="review_text"><p>“{{ testimonial.description | t:testimonial.descriptionHindi }}”</p></div>
+      <div class="review_owner text-start gap-2 d-flex align-items-center mt-3">
+        <div *ngIf="testimonial.image" class="image"><img [src]="testimonial.image" [alt]="testimonial.name"></div>
+        <div class="name"><h5 class="fw-bold">{{ testimonial.name | t:testimonial.nameHindi }}</h5><p>{{ testimonial.subtitle | t:testimonial.subtitleHindi }}</p></div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="sliderTestimonials.length > 1" class="swiper-pagination"></div>
+</div>

@@ -1,0 +1,107 @@
+<div class="profile-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading profile...</p>
+  </div>
+  
+  <!-- Error/No User State -->
+  <div *ngIf="!loading && !user" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <h2>Profile Not Found</h2>
+    <p>Unable to load user profile. Please try logging in again.</p>
+    <button mat-raised-button color="primary" routerLink="/login">
+      Go to Login
+    </button>
+  </div>
+  
+  <!-- User Profile Content -->
+  <div *ngIf="!loading && user" class="profile-content">
+    <div class="header-section">
+      <h1 class="page-title">{{ 'My Profile' | t }}</h1>
+      <p class="page-subtitle">Manage your account information and preferences</p>
+    </div>
+    
+    <!-- Profile Overview Card -->
+    <div class="profile-overview">
+      <mat-card class="profile-card">
+        <mat-card-header class="profile-header">
+          <div class="profile-avatar">
+            <mat-icon class="avatar-icon">account_circle</mat-icon>
+          </div>
+          <div class="profile-info">
+            <mat-card-title class="profile-name">{{ user.fullName }}</mat-card-title>
+            <mat-card-subtitle>{{ user.email }}</mat-card-subtitle>
+            <span class="role-badge">{{ user.role }}</span>
+          </div>
+        </mat-card-header>
+        
+        <mat-divider></mat-divider>
+        
+        <mat-card-content>
+          <div class="info-grid">
+            <div class="info-item">
+              <mat-icon class="info-icon">phone</mat-icon>
+              <div class="info-content">
+                <span class="info-label">Phone Number</span>
+                <span class="info-value">{{ user.phone || 'Not provided' }}</span>
+              </div>
+            </div>
+            
+            <div class="info-item">
+              <mat-icon class="info-icon">calendar_today</mat-icon>
+              <div class="info-content">
+                <span class="info-label">Member Since</span>
+                <span class="info-value">{{ formatDate(user.createdAt) }}</span>
+              </div>
+            </div>
+            
+            <div class="info-item">
+              <mat-icon class="info-icon">verified_user</mat-icon>
+              <div class="info-content">
+                <span class="info-label">Account Status</span>
+                <span class="info-value status-active">{{ 'Active' | t }}</span>
+              </div>
+            </div>
+            
+            <div class="info-item">
+              <mat-icon class="info-icon">update</mat-icon>
+              <div class="info-content">
+                <span class="info-label">Last Updated</span>
+                <span class="info-value">{{ formatDate(user.updatedAt) || 'Recently' }}</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    
+    <!-- Plan Section -->
+    <div class="plan-section">
+      <mat-card class="plan-card">
+        <mat-card-header>
+          <mat-card-title>{{ 'Current Plan' | t }}</mat-card-title>
+          <mat-card-subtitle>{{ getPlanDisplayName() }}</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="plan-details">
+            <div class="plan-features">
+              <p *ngFor="let feature of currentPlan?.features"><mat-icon class="feature-icon">check_circle</mat-icon> {{ feature }}</p>
+              <p *ngIf="!currentPlan"><mat-icon class="feature-icon">info</mat-icon> Select a plan to unlock course features.</p>
+              <p *ngIf="user.planActivatedAt"><mat-icon class="feature-icon">event_available</mat-icon> Activated {{ formatDate(user.planActivatedAt) }}</p>
+            </div>
+            
+            <button mat-raised-button 
+                    color="primary" 
+                    class="upgrade-btn"
+                    (click)="upgradePlan()">
+              <mat-icon>rocket_launch</mat-icon>
+              Upgrade / Change Plan
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

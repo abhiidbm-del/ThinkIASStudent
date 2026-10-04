@@ -1,0 +1,53 @@
+<main class="monitor-page">
+  <header>
+    <div><h1>{{ 'Live Exam Monitoring' | t }}</h1><p>{{ 'Live screen + camera view, snapshots and completed recordings' | t }}</p></div>
+    <button mat-stroked-button (click)="load()"><mat-icon>refresh</mat-icon> {{ 'Refresh' | t }}</button>
+  </header>
+
+  <p class="error" *ngIf="error">{{ error | t }}</p>
+  <p class="empty" *ngIf="loading">{{ 'Loading monitoring sessions...' | t }}</p>
+  <p class="empty" *ngIf="!loading && !sessions.length">{{ 'No monitoring sessions yet.' | t }}</p>
+
+  <section class="layout" *ngIf="sessions.length">
+    <div class="session-list">
+      <div class="session" *ngFor="let session of sessions; trackBy: trackById" (click)="select(session)" [class.selected]="selected?._id === session._id">
+        <img *ngIf="session.latestSnapshotUrl" [src]="session.latestSnapshotUrl" alt="Latest student snapshot">
+        <div class="placeholder" *ngIf="!session.latestSnapshotUrl"><mat-icon>desktop_windows</mat-icon></div>
+        <span class="details"><strong>{{ studentName(session) }}</strong><small>{{ testName(session) }} · {{ session.testModel }}</small><small>{{ session.lastHeartbeatAt | date:'medium' }}</small></span>
+        <span class="status" [class.online]="session.online">{{ (session.online ? 'LIVE' : session.status) | t }}</span>
+        <button class="list-delete" type="button" (click)="deleteSession(session, $event)">Delete</button>
+      </div>
+    </div>
+
+    <article class="viewer" *ngIf="selected; else chooseSession">
+      <div class="viewer-title"><div><h2>{{ studentName(selected) }}</h2><p>{{ testName(selected) }}</p></div><span class="live-badge" *ngIf="liveState === 'Live'">● LIVE</span></div>
+      <video #liveVideo class="live-video" controls playsinline></video>
+      <p class="live-state" *ngIf="liveState && liveState !== 'Live'">{{ liveState }}</p>
+      <div class="actions">
+        <button mat-raised-button color="primary" (click)="watchLive(selected)" [disabled]="!selected.online"><mat-icon>visibility</mat-icon>{{ 'Watch live' | t }}</button>
+        <button mat-stroked-button (click)="stopLive()" *ngIf="liveState"><mat-icon>stop</mat-icon>{{ 'Stop live' | t }}</button>
+        <button mat-raised-button color="warn" type="button" (click)="deleteSession(selected)"><mat-icon>delete</mat-icon>Delete</button>
+      </div>
+
+      <section class="recording" *ngIf="selected.recordingUrl">
+        <h3>{{ 'Completed recording' | t }}</h3>
+        <video [src]="selected.recordingUrl" controls preload="metadata"></video>
+      </section>
+      <div class="meta">
+        <span>Snapshots: {{ selected.snapshotCount || 0 }}</span>
+        <span>Violations: {{ selected.violations?.length || 0 }}</span>
+        <span>Status: {{ selected.status }}</span>
+      </div>
+      <section class="activity">
+        <h3>{{ 'Activity' | t }}</h3>
+        <p><mat-icon>play_circle</mat-icon><span>{{ 'Monitoring started' | t }}<small>{{ selected.createdAt | date:'medium' }}</small></span></p>
+        <p *ngIf="selected.lastHeartbeatAt"><mat-icon>schedule</mat-icon><span>{{ 'Last live activity' | t }}<small>{{ selected.lastHeartbeatAt | date:'medium' }}</small></span></p>
+        <p *ngIf="selected.status === 'completed'"><mat-icon>check_circle</mat-icon><span>{{ 'Test and recording completed' | t }}</span></p>
+      </section>
+      <ul class="violations" *ngIf="selected.violations?.length">
+        <li *ngFor="let violation of selected.violations">{{ violation.type }} <small>{{ violation.occurredAt | date:'medium' }}</small></li>
+      </ul>
+    </article>
+    <ng-template #chooseSession><div class="viewer empty">{{ 'Select a student session to monitor.' | t }}</div></ng-template>
+  </section>
+</main>

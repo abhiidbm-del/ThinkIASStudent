@@ -1,0 +1,360 @@
+<div class="create-test-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ isEdit() ? 'Edit/View Test' : 'Create New Test' }}</h2>
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <form [formGroup]="testForm" (ngSubmit)="onSubmit()" class="test-form">
+      <!-- Basic Test Info -->
+      <div class="form-section">
+        <h3 class="section-title">Test Information</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Test Title</mat-label>
+            <input matInput formControlName="title" placeholder="Enter test title" (input)="capitalizeTitle($event)">
+            <mat-icon matSuffix>title</mat-icon>
+            <mat-error *ngIf="testForm.get('title')?.hasError('required')">
+              Title is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" placeholder="Enter test description" rows="3"></textarea>
+            <mat-icon matSuffix>description</mat-icon>
+          </mat-form-field>
+
+          <div class="row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Start Time</mat-label>
+              <input matInput type="datetime-local" formControlName="startTime" required>
+              <mat-icon matSuffix>schedule</mat-icon>
+              <mat-error *ngIf="testForm.get('startTime')?.hasError('required')">
+                Start time is required
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Duration (minutes)</mat-label>
+              <input matInput type="number" formControlName="duration" min="1">
+              <mat-icon matSuffix>timer</mat-icon>
+              <mat-error *ngIf="testForm.get('duration')?.hasError('required')">
+                Duration is required
+              </mat-error>
+              <mat-error *ngIf="testForm.get('duration')?.hasError('min')">
+                Duration must be at least 1 minute
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Marks Section -->
+          <div class="marks-section">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Marks per Question</mat-label>
+              <input matInput type="number" formControlName="marksPerQuestion" min="1">
+              <mat-icon matSuffix>grade</mat-icon>
+              <mat-error *ngIf="testForm.get('marksPerQuestion')?.hasError('required')">
+                Marks per question is required
+              </mat-error>
+              <mat-error *ngIf="testForm.get('marksPerQuestion')?.hasError('min')">
+                Marks must be at least 1
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Negative Marks per Question</mat-label>
+              <input matInput type="number" formControlName="negativeMarks" min="0" step="0.25">
+              <mat-icon matSuffix>remove</mat-icon>
+              <mat-hint>Enter 0 for no negative marking</mat-hint>
+              <mat-error *ngIf="testForm.get('negativeMarks')?.hasError('min')">
+                Negative marks cannot be negative
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- Questions Selection Section -->
+      <div class="questions-section">
+        <div class="section-header">
+          <h3 class="section-title">Select Questions ({{ selectedQuestions().length }})</h3>
+          <div class="action-buttons" *ngIf="!questionsLoading()">
+            
+            <!-- Add Questions by UID Button -->
+            <button type="button" mat-stroked-button color="accent" 
+            (click)="toggleAddByUid()" class="add-by-uid-btn">
+            <mat-icon>add</mat-icon>
+            Add By UID
+          </button>
+          
+          <!-- Filter by Tag Button -->
+          <button type="button" mat-stroked-button color="primary" 
+                  (click)="toggleTagFilter()" class="filter-by-tag-btn">
+            <mat-icon>filter_list</mat-icon>
+            {{ currentFilterTag() ? 'Filtered: ' + currentFilterTag() : 'Filter by Tag' }}
+          </button>
+          
+          <span class="total-questions">
+            Total Available: {{ availableQuestions().length }}
+          </span>
+            
+            <button type="button" mat-stroked-button color="primary" (click)="toggleSelectAll()" 
+                    *ngIf="availableQuestions().length > 0" class="select-all-btn">
+              <mat-icon>{{ selectAllChecked() ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+              {{ selectAllChecked() ? 'Deselect All' : 'Select All' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter by Tag Section -->
+        <div *ngIf="showTagFilter()" class="filter-by-tag-section">
+          <div class="filter-header">
+            <h4 class="filter-title">Filter Questions by Tag</h4>
+            <div class="filter-actions">
+              <button type="button" mat-stroked-button color="warn" (click)="clearTagFilter()">
+                <mat-icon>clear</mat-icon>
+                Clear Filter
+              </button>
+              <button type="button" mat-stroked-button color="primary" (click)="toggleTagFilter()">
+                <mat-icon>close</mat-icon>
+                Close
+              </button>
+            </div>
+          </div>
+          
+          <div class="tags-container">
+            <!-- Loading State -->
+            <div *ngIf="tagsLoading()" class="tags-loading">
+              <mat-spinner diameter="30"></mat-spinner>
+              <p>Loading tags...</p>
+            </div>
+            
+            <!-- Tags Grid -->
+            <div *ngIf="!tagsLoading() && tags().length > 0" class="tags-grid">
+              <button *ngFor="let tag of tags()" 
+                      type="button" 
+                      mat-stroked-button 
+                      [class.active]="currentFilterTag() === tag.tag"
+                      (click)="applyTagFilter(tag)"
+                      class="tag-button">
+                <span class="tag-name">{{ tag.tag }}</span>
+                <span class="tag-count">{{ tag.questionCount }}</span>
+              </button>
+            </div>
+            
+            <!-- No Tags State -->
+            <div *ngIf="!tagsLoading() && tags().length === 0" class="no-tags">
+              <mat-icon>label_off</mat-icon>
+              <p>No tags available</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add by UID Section -->
+        <div *ngIf="showAddByUid()" class="add-by-uid-section">
+          <div class="uid-inputs-container">
+            <div *ngFor="let input of uidInputs(); let i = index" class="uid-input-row">
+              <div class="uid-input-wrapper">
+                <mat-icon class="uid-input-icon">fingerprint</mat-icon>
+                <input 
+                  type="text" 
+                  class="uid-input" 
+                  placeholder="Enter Question UID" 
+                  [(ngModel)]="input.value"
+                  [ngModelOptions]="{standalone: true}"
+                  (input)="onUidInputChange(i, $event)"
+                  (keyup.enter)="addUid()">
+                
+                <!-- Actions for the current input -->
+                <div class="uid-actions">
+                  <!-- Plus button - only show if this is the last input and it has value -->
+                  <button *ngIf="i === uidInputs().length - 1 && input.value.trim()" 
+                          type="button" mat-icon-button color="primary"
+                          (click)="addUid()" class="uid-action-btn"
+                          matTooltip="Add another UID">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                  
+                  <!-- Done button - only show if this is the last input and it has value -->
+                  <button *ngIf="i === uidInputs().length - 1 && input.value.trim()" 
+                          type="button" mat-icon-button color="accent"
+                          (click)="processUids()" class="uid-action-btn"
+                          matTooltip="Process UIDs">
+                    <mat-icon>done</mat-icon>
+                  </button>
+                  
+                  <!-- Delete button - show on all inputs if there's more than one -->
+                  <button *ngIf="uidInputs().length > 1" 
+                          type="button" mat-icon-button color="warn"
+                          (click)="removeUidInput(i)" class="uid-action-btn"
+                          matTooltip="Remove this UID">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Status indicator -->
+              <div *ngIf="input.status" class="uid-status" [class]="input.status">
+                <mat-icon>{{ 
+                  input.status === 'loading' ? 'hourglass_empty' : 
+                  input.status === 'success' ? 'check_circle' : 
+                  input.status === 'error' ? 'error' : '' 
+                }}</mat-icon>
+                <span>{{ input.message }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Action buttons for the whole section -->
+          <div class="uid-section-actions">
+            <button type="button" mat-stroked-button (click)="clearUids()">
+              <mat-icon>clear_all</mat-icon>
+              Clear All
+            </button>
+            <button type="button" mat-stroked-button color="warn" (click)="toggleAddByUid()">
+              <mat-icon>close</mat-icon>
+              Close
+            </button>
+          </div>
+        </div>
+
+        <!-- Questions Multi-select -->
+        <div class="questions-select-section">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Select Questions 
+              <span *ngIf="currentFilterTag()" class="filter-indicator">
+                (Filtered by: {{ currentFilterTag() }})
+              </span>
+            </mat-label>
+            <mat-select formControlName="selectedQuestionUids" multiple 
+                        (selectionChange)="onQuestionSelectionChange($event.value)">
+              <mat-option *ngFor="let question of filteredQuestions()" 
+                         [value]="question.uid"
+                         class="question-option">
+                <div class="question-option-content">
+                  <div class="question-text">
+                    {{ getQuestionDisplayText(question) }}
+                  </div>
+                  <div class="question-meta">
+                    <span class="correct-answer">
+                      Correct: {{ getOptionLetter(question.correctAnswer) }}
+                    </span>
+                    <span class="question-tags">
+                      Tags: {{ getQuestionTags(question) }}
+                    </span>
+                    <span class="question-id">
+                      ID: {{ question.uid.slice(0, 8) }}...
+                    </span>
+                  </div>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>quiz</mat-icon>
+            <mat-hint>Select one or more questions for this test</mat-hint>
+            <mat-error *ngIf="testForm.get('selectedQuestionUids')?.hasError('required')">
+              At least one question is required
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Loading State -->
+          <div *ngIf="questionsLoading()" class="questions-loading">
+            <mat-spinner diameter="30"></mat-spinner>
+            <p>Loading questions...</p>
+          </div>
+        </div>
+
+        <!-- Selected Questions Preview -->
+        <div *ngIf="selectedQuestions().length > 0" class="selected-questions-preview">
+          <div class="preview-header-section">
+            <h4 class="preview-title">Selected Questions Preview ({{ selectedQuestions().length }})</h4>
+            <button type="button" mat-stroked-button color="warn" (click)="clearAll()" 
+                    class="clear-all-btn" *ngIf="selectedQuestions().length > 0">
+              <mat-icon>clear_all</mat-icon>
+              Clear All
+            </button>
+          </div>
+          <div class="questions-preview-list">
+            <div *ngFor="let question of selectedQuestions(); let i = index" 
+                 class="question-preview-card">
+              <div class="preview-header">
+                <div class="question-header-left">
+                  <h5 class="question-preview-number">Question {{ i + 1 }}</h5>
+                  <span class="correct-answer-badge">
+                    Correct: {{ getOptionLetter(question.correctAnswer) }}
+                  </span>
+                  <span class="question-uid-badge">
+                    UID: {{ question.uid }}
+                  </span>
+                  <span *ngIf="question.tags && question.tags.length > 0" class="question-tags-badge">
+                    <mat-icon>label</mat-icon>
+                    {{ getQuestionTags(question) }}
+                  </span>
+                </div>
+                <button type="button" mat-icon-button color="warn" 
+                        (click)="removeQuestion(i)" class="delete-question-btn"
+                        matTooltip="Remove question from test">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+              
+              <div class="preview-content">
+                <div class="language-preview">
+                  <strong>English:</strong>
+                  <p class="question-text">{{ question.question.english }}</p>
+                  <div *ngIf="question.description?.english" class="description-preview">
+                    <strong>Description:</strong>
+                    <p>{{ question.description?.english }}</p>
+                  </div>
+                </div>
+                
+                <div class="language-preview" *ngIf="question.question.hindi">
+                  <strong>Hindi:</strong>
+                  <p class="question-text">{{ question.question.hindi }}</p>
+                  <div *ngIf="question.description?.hindi" class="description-preview">
+                    <strong>Description:</strong>
+                    <p>{{ question.description?.hindi }}</p>
+                  </div>
+                </div>
+
+                <div class="options-preview">
+                  <strong>Options:</strong>
+                  <div class="options-grid">
+                    <div *ngFor="let option of question.options; let j = index" 
+                         class="option-preview">
+                      <span class="option-letter">{{ getOptionLetter(j) }}</span>
+                      <div class="option-content">
+                        <div class="option-text">{{ option.english }}</div>
+                        <div *ngIf="option.hindi" class="option-text-hindi">{{ option.hindi }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Questions Selected State -->
+        <div *ngIf="selectedQuestions().length === 0 && !questionsLoading()" class="no-questions-selected">
+          <mat-icon class="no-questions-icon">help_outline</mat-icon>
+          <h4>No questions selected</h4>
+          <p *ngIf="currentFilterTag()">No questions with tag "{{ currentFilterTag() }}" found.</p>
+          <p *ngIf="!currentFilterTag()">Select questions from the dropdown above to add them to your test.</p>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-raised-button color="primary" (click)="onSubmit()"
+      [disabled]="!testForm.valid || selectedQuestions().length === 0 || loading()" class="submit-btn">
+      <mat-spinner diameter="20" *ngIf="loading()"></mat-spinner>
+      <span *ngIf="!loading()">
+        {{ isEdit() ? 'Update' : 'Create' }} Test ({{ selectedQuestions().length }} questions)
+      </span>
+    </button>
+  </mat-dialog-actions>
+</div>

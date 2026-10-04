@@ -1,0 +1,341 @@
+<div class="syllabus-master">
+    <div class="header">
+        <h2>Syllabus Master</h2>
+        <p>Manage Prelims and Mains syllabus items</p>
+    </div>
+
+    <!-- Message Display -->
+    <div *ngIf="message" class="message" [class]="messageType">
+        {{ message }}
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+        <button class="tab-button" [class.active]="activeTab === 'prelims'" (click)="switchTab('prelims')">
+            Prelims Syllabus
+        </button>
+        <button class="tab-button" [class.active]="activeTab === 'mains'" (click)="switchTab('mains')">
+            Mains Syllabus
+        </button>
+    </div>
+
+    <!-- PRELIMS TAB -->
+    <div *ngIf="activeTab === 'prelims'" class="tab-content">
+        <form [formGroup]="prelimsForm" (ngSubmit)="onSubmitPrelims()" class="syllabus-form">
+            <div class="form-sections">
+                <!-- GS1 Section -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>GS1 - General Studies Paper 1</h3>
+                        <span class="section-badge">Paper 1</span>
+                    </div>
+
+                    <div formGroupName="gs1" class="section-content">
+                        <div class="form-group">
+                            <label for="prelimsGs1FileName">File Name *</label>
+                            <input type="text" id="prelimsGs1FileName" formControlName="fileName"
+                                placeholder="e.g., GS1 Syllabus PDF 2024" class="form-control"
+                                [class.error]="prelimsGs1Form.get('fileName')?.invalid && prelimsGs1Form.get('fileName')?.touched">
+                            <div *ngIf="prelimsGs1Form.get('fileName')?.invalid && prelimsGs1Form.get('fileName')?.touched"
+                                class="error-message">
+                                File name is required
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prelimsGs1FileLink">File Link *</label>
+                            <input type="url" id="prelimsGs1FileLink" formControlName="fileLink"
+                                placeholder="https://drive.google.com/..." class="form-control"
+                                [class.error]="prelimsGs1Form.get('fileLink')?.invalid && prelimsGs1Form.get('fileLink')?.touched">
+                            <div *ngIf="prelimsGs1Form.get('fileLink')?.invalid && prelimsGs1Form.get('fileLink')?.touched"
+                                class="error-message">
+                                <span *ngIf="prelimsGs1Form.get('fileLink')?.errors?.['required']">File link is
+                                    required</span>
+                                <span *ngIf="prelimsGs1Form.get('fileLink')?.errors?.['pattern']">Valid URL
+                                    required</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prelimsGs1Description">Description *</label>
+                            <textarea id="prelimsGs1Description" formControlName="description"
+                                placeholder="e.g., General Studies Paper 1 - Complete Syllabus" rows="3"
+                                class="form-control"
+                                [class.error]="prelimsGs1Form.get('description')?.invalid && prelimsGs1Form.get('description')?.touched">
+              </textarea>
+                            <div *ngIf="prelimsGs1Form.get('description')?.invalid && prelimsGs1Form.get('description')?.touched"
+                                class="error-message">
+                                Description is required
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GS2 Section -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>GS2 - General Studies Paper 2</h3>
+                        <span class="section-badge">Paper 2</span>
+                    </div>
+
+                    <div formGroupName="gs2" class="section-content">
+                        <div class="form-group">
+                            <label for="prelimsGs2FileName">File Name *</label>
+                            <input type="text" id="prelimsGs2FileName" formControlName="fileName"
+                                placeholder="e.g., GS2 Syllabus PDF 2024" class="form-control"
+                                [class.error]="prelimsGs2Form.get('fileName')?.invalid && prelimsGs2Form.get('fileName')?.touched">
+                            <div *ngIf="prelimsGs2Form.get('fileName')?.invalid && prelimsGs2Form.get('fileName')?.touched"
+                                class="error-message">
+                                File name is required
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prelimsGs2FileLink">File Link *</label>
+                            <input type="url" id="prelimsGs2FileLink" formControlName="fileLink"
+                                placeholder="https://drive.google.com/..." class="form-control"
+                                [class.error]="prelimsGs2Form.get('fileLink')?.invalid && prelimsGs2Form.get('fileLink')?.touched">
+                            <div *ngIf="prelimsGs2Form.get('fileLink')?.invalid && prelimsGs2Form.get('fileLink')?.touched"
+                                class="error-message">
+                                <span *ngIf="prelimsGs2Form.get('fileLink')?.errors?.['required']">File link is
+                                    required</span>
+                                <span *ngIf="prelimsGs2Form.get('fileLink')?.errors?.['pattern']">Valid URL
+                                    required</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prelimsGs2Description">Description *</label>
+                            <textarea id="prelimsGs2Description" formControlName="description"
+                                placeholder="e.g., General Studies Paper 2 - Complete Syllabus" rows="3"
+                                class="form-control"
+                                [class.error]="prelimsGs2Form.get('description')?.invalid && prelimsGs2Form.get('description')?.touched">
+              </textarea>
+                            <div *ngIf="prelimsGs2Form.get('description')?.invalid && prelimsGs2Form.get('description')?.touched"
+                                class="error-message">
+                                Description is required
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" [disabled]="isLoading || prelimsForm.invalid">
+                    <span *ngIf="!isLoading">Save Prelims Syllabus</span>
+                    <span *ngIf="isLoading">Saving...</span>
+                </button>
+                <button type="button" class="btn btn-secondary" (click)="loadPrelimsData()" [disabled]="isLoading">
+                    Reload Data
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- MAINS TAB -->
+    <div *ngIf="activeTab === 'mains'" class="tab-content">
+        <form [formGroup]="mainsForm" (ngSubmit)="onSubmitMains()" class="syllabus-form">
+            <div class="form-sections mains-sections">
+                <!-- GS Papers -->
+                <div class="form-section" *ngFor="let paper of [1,2,3,4]; let i = index">
+                    <div class="section-header">
+                        <h3>GS{{paper}} - General Studies Paper {{paper}}</h3>
+                        <span class="section-badge">Paper {{paper}}</span>
+                    </div>
+
+                    <div [formGroupName]="'gs' + paper" class="section-content">
+    <div class="form-group">
+        <label [for]="'mainsGs' + paper + 'FileName'">File Name *</label>
+        <input type="text" [id]="'mainsGs' + paper + 'FileName'" formControlName="fileName"
+            [placeholder]="'e.g., GS' + paper + ' Syllabus PDF 2024'" class="form-control"
+            [class.error]="getMainsControl('gs' + paper, 'fileName')?.invalid && getMainsControl('gs' + paper, 'fileName')?.touched">
+        <div *ngIf="getMainsControl('gs' + paper, 'fileName')?.invalid && getMainsControl('gs' + paper, 'fileName')?.touched"
+            class="error-message">
+            File name is required
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label [for]="'mainsGs' + paper + 'FileLink'">File Link *</label>
+        <input type="url" [id]="'mainsGs' + paper + 'FileLink'" formControlName="fileLink"
+            placeholder="https://drive.google.com/..." class="form-control"
+            [class.error]="getMainsControl('gs' + paper, 'fileLink')?.invalid && getMainsControl('gs' + paper, 'fileLink')?.touched">
+        <div *ngIf="getMainsControl('gs' + paper, 'fileLink')?.invalid && getMainsControl('gs' + paper, 'fileLink')?.touched"
+            class="error-message">
+            <span *ngIf="getMainsControl('gs' + paper, 'fileLink')?.errors?.['required']">File link is required</span>
+            <span *ngIf="getMainsControl('gs' + paper, 'fileLink')?.errors?.['pattern']">Valid URL required</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label [for]="'mainsGs' + paper + 'Description'">Description *</label>
+        <textarea [id]="'mainsGs' + paper + 'Description'" formControlName="description"
+            [placeholder]="'e.g., General Studies Paper ' + paper + ' - Complete Syllabus'" rows="3"
+            class="form-control"
+            [class.error]="getMainsControl('gs' + paper, 'description')?.invalid && getMainsControl('gs' + paper, 'description')?.touched">
+        </textarea>
+        <div *ngIf="getMainsControl('gs' + paper, 'description')?.invalid && getMainsControl('gs' + paper, 'description')?.touched"
+            class="error-message">
+            Description is required
+        </div>
+    </div>
+</div>
+                </div>
+
+                <!-- Essay -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>Essay Paper</h3>
+                        <span class="section-badge">Essay</span>
+                    </div>
+
+                    <div formGroupName="essay" class="section-content">
+                        <div class="form-group">
+                            <label for="mainsEssayFileName">File Name *</label>
+                            <input type="text" id="mainsEssayFileName" formControlName="fileName"
+                                placeholder="e.g., Essay Syllabus PDF 2024" class="form-control"
+                                [class.error]="mainsEssayForm.get('fileName')?.invalid && mainsEssayForm.get('fileName')?.touched">
+                            <div *ngIf="mainsEssayForm.get('fileName')?.invalid && mainsEssayForm.get('fileName')?.touched"
+                                class="error-message">
+                                File name is required
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mainsEssayFileLink">File Link *</label>
+                            <input type="url" id="mainsEssayFileLink" formControlName="fileLink"
+                                placeholder="https://drive.google.com/..." class="form-control"
+                                [class.error]="mainsEssayForm.get('fileLink')?.invalid && mainsEssayForm.get('fileLink')?.touched">
+                            <div *ngIf="mainsEssayForm.get('fileLink')?.invalid && mainsEssayForm.get('fileLink')?.touched"
+                                class="error-message">
+                                <span *ngIf="mainsEssayForm.get('fileLink')?.errors?.['required']">File link is
+                                    required</span>
+                                <span *ngIf="mainsEssayForm.get('fileLink')?.errors?.['pattern']">Valid URL
+                                    required</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mainsEssayDescription">Description *</label>
+                            <textarea id="mainsEssayDescription" formControlName="description"
+                                placeholder="e.g., Essay Paper - Complete Syllabus" rows="3" class="form-control"
+                                [class.error]="mainsEssayForm.get('description')?.invalid && mainsEssayForm.get('description')?.touched">
+              </textarea>
+                            <div *ngIf="mainsEssayForm.get('description')?.invalid && mainsEssayForm.get('description')?.touched"
+                                class="error-message">
+                                Description is required
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optional Subjects -->
+                <div class="form-section optional-section">
+  <div class="section-header">
+    <h3>Optional Subjects</h3>
+  </div>
+
+  <div formArrayName="optionalSubjects" class="optional-subjects">
+    <div *ngFor="let subject of optionalSubjects.controls; let i = index" 
+         [formGroupName]="i" class="optional-subject">
+      
+      <div class="subject-header">
+        <div class="form-group compact">
+          <label>Subject Name *</label>
+          <input 
+            type="text" 
+            formControlName="subjectName" 
+            placeholder="e.g., History, Mathematics"
+            class="form-control"
+            [class.error]="subject.get('subjectName')?.invalid && subject.get('subjectName')?.touched">
+          <div *ngIf="subject.get('subjectName')?.invalid && subject.get('subjectName')?.touched" class="error-message">
+            Subject name is required
+          </div>
+        </div>
+        <button type="button" class="btn-remove" (click)="removeOptionalSubject(i)">
+          <i class="fa fa-trash"></i>
+        </button>
+      </div>
+
+      <div formArrayName="documents" class="documents-list">
+        <div *ngFor="let document of getDocuments(i).controls; let j = index" 
+             [formGroupName]="j" class="document-item">
+          
+          <div class="document-fields">
+            <div class="form-group compact">
+              <label>Document Name *</label>
+              <input 
+                type="text" 
+                formControlName="fileName" 
+                placeholder="Document name"
+                class="form-control"
+                [class.error]="document.get('fileName')?.invalid && document.get('fileName')?.touched">
+              <div *ngIf="document.get('fileName')?.invalid && document.get('fileName')?.touched" class="error-message">
+                Document name is required
+              </div>
+            </div>
+            
+            <div class="form-group compact">
+              <label>File Link *</label>
+              <input 
+                type="url" 
+                formControlName="fileLink" 
+                placeholder="https://drive.google.com/..."
+                class="form-control"
+                [class.error]="document.get('fileLink')?.invalid && document.get('fileLink')?.touched">
+              <div *ngIf="document.get('fileLink')?.invalid && document.get('fileLink')?.touched" class="error-message">
+                <span *ngIf="document.get('fileLink')?.errors?.['required']">File link is required</span>
+                <span *ngIf="document.get('fileLink')?.errors?.['pattern']">Valid URL required</span>
+              </div>
+            </div>
+
+            <div class="form-group compact">
+              <label>Description *</label>
+              <input 
+                type="text" 
+                formControlName="description" 
+                placeholder="Document description"
+                class="form-control"
+                [class.error]="document.get('description')?.invalid && document.get('description')?.touched">
+              <div *ngIf="document.get('description')?.invalid && document.get('description')?.touched" class="error-message">
+                Description is required
+              </div>
+            </div>
+            
+            <button type="button" class="btn-remove" (click)="removeDocument(i, j)" *ngIf="getDocuments(i).length > 1">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        
+        <button type="button" class="btn-add-document" (click)="addDocument(i)">
+          <i class="fa fa-plus"></i> Add Document
+        </button>
+      </div>
+    </div>
+    
+    <button type="button" class="btn-add-subject" (click)="addOptionalSubject()">
+      <i class="fa fa-plus"></i> Add Subject
+    </button>
+  </div>
+</div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" [disabled]="isLoading || mainsForm.invalid">
+                    <span *ngIf="!isLoading">Save Mains Syllabus</span>
+                    <span *ngIf="isLoading">Saving...</span>
+                </button>
+                <button type="button" class="btn btn-secondary" (click)="loadMainsData()" [disabled]="isLoading">
+                    Reload Data
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

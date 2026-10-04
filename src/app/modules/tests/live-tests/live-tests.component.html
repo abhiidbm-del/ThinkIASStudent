@@ -1,0 +1,368 @@
+
+<div class="live-tests-container">
+  <div class="header">
+    <div class="header-copy">
+      <span class="page-eyebrow">{{ isAdmin ? 'TEST ADMINISTRATION' : 'PRELIMS PREPARATION' }}</span>
+      <h1>{{ isAdmin ? 'Manage Tests' : 'Prelims Tests' }}</h1>
+      <p>{{ isAdmin ? 'Create, review and manage your test library.' : 'Build speed and confidence with focused practice.' }}</p>
+      <div class="header-stats" *ngIf="!isAdmin">
+        <span><strong>{{ tests().length }}</strong> available tests</span>
+        <span><strong>{{ completedTestsCount }}</strong> completed</span>
+      </div>
+    </div>
+    <div class="header-mark"><mat-icon>bolt</mat-icon></div>
+    <button *ngIf="isAdmin" mat-raised-button color="primary" (click)="openCreateTestDialog()">
+      <mat-icon>add</mat-icon>
+      Create Test
+    </button>
+  </div>
+
+  <div class="test-filters">
+    <label class="search-field">
+      <span>Search</span>
+      <div class="input-wrap">
+        <input aria-label="Search tests" placeholder="Search by title, description..." [(ngModel)]="search">
+      </div>
+    </label>
+
+    <label>
+      <span>Status</span>
+      <select aria-label="Filter by test status" [(ngModel)]="statusFilter">
+        <option value="all">All</option>
+        <option value="active">Active</option>
+        <option value="upcoming">Upcoming</option>
+        <option value="closed">Closed</option>
+        <option value="submitted">Submitted</option>
+        <option value="not-started">Not started</option>
+      </select>
+    </label>
+
+    <label>
+      <span>From</span>
+      <input type="date" aria-label="Filter from date" [(ngModel)]="dateFrom">
+    </label>
+
+    <label>
+      <span>To</span>
+      <input type="date" aria-label="Filter to date" [(ngModel)]="dateTo">
+    </label>
+
+    <label>
+      <span>Sort by</span>
+      <select aria-label="Sort tests" [(ngModel)]="sortOrder">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+      </select>
+    </label>
+
+    <button type="button" class="clear-filters-btn" (click)="clearFilters()">Clear filters</button>
+    <strong>{{ filteredTests.length }} {{ filteredTests.length === 1 ? 'test' : 'tests' }}</strong>
+  </div>
+  <p *ngIf="!loading() && tests().length && !filteredTests.length">No tests match your filters.</p>
+  <div *ngIf="loading()" class="loading">
+    <mat-spinner></mat-spinner>
+    <p>Loading tests...</p>
+  </div>
+
+  <div class="tests-grid" *ngIf="!loading() && tests().length > 0">
+    <mat-card *ngFor="let test of filteredTests" class="test-card">
+      <div class="card-accent"></div>
+          <mat-card-header>
+            <span *ngIf="isAdmin" class="test-card-kicker"><mat-icon>calendar_today</mat-icon>{{ test.startTime | date:'dd MMM yyyy' }}</span>
+        <mat-card-title>{{ test.title }}</mat-card-title>
+        <mat-card-subtitle>
+          <div class="schedule-row"><span><mat-icon>event</mat-icon><b>Starts:</b> {{ test.startTime | date:'dd MMM yyyy, h:mm a' }}</span></div>
+          <div class="schedule-row"><span><mat-icon>event_available</mat-icon><b>Ends:</b> {{ test.endTime | date:'dd MMM yyyy, h:mm a' }}</span></div>
+          <div class="duration-row"><mat-icon>timer</mat-icon>{{ test.duration }} minutes</div>
+          <div *ngIf="!isAdmin" class="availability-row" [class.available]="canStartTest(test)" [class.ended]="!canStartTest(test)">
+            <mat-icon>{{ canStartTest(test) ? 'check_circle' : 'lock_clock' }}</mat-icon>
+            <span *ngIf="canStartTest(test)">Available now</span>
+            <span *ngIf="!canStartTest(test) && countdown(test)">Starts in {{ countdown(test) }}</span>
+            <span *ngIf="!canStartTest(test) && !countdown(test)">Not available</span>
+          </div>
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="description">{{ test.description || 'Focused practice set for your prelims preparation.' }}</p>
+        <div class="test-meta">
+          <span><mat-icon>quiz</mat-icon><b>{{ test.questionUids?.length || test.totalQuestions }}</b> Questions</span>
+          <span><mat-icon>emoji_events</mat-icon><b>{{ (test.marksPerQuestion * test.questionUids?.length) || (test.marksPerQuestion * test.totalQuestions)}}</b> Marks</span>
+          <span><mat-icon>remove_circle_outline</mat-icon>{{ test.negativeMarks }} negative</span>
+        </div>
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <div *ngIf="!isAdmin" class="student-actions">
+          <button mat-stroked-button color="primary" (click)="viewIntroduction(test)">
+            <mat-icon>menu_book</mat-icon>
+            Introduction
+          </button>
+          <button mat-raised-button color="primary" class="start-test-button" (click)="showTestRules(test)"
+            [disabled]="test.submitted || (!canStartTest(test) && !countdown(test))">
+          {{ test.submitted ? 'Test Submitted' : (countdown(test) ? 'View countdown' : 'Start Test') }}
+          </button>
+        </div>
+
+        <div *ngIf="isAdmin" class="admin-actions">
+          <!-- Download PDF dropdown -->
+          <div class="download-pdf-container">
+            <button mat-button color="accent" [matMenuTriggerFor]="downloadMenu">
+              <mat-icon>download</mat-icon>
+              Question PDF
+            </button>
+            <mat-menu #downloadMenu="matMenu" xPosition="before">
+              <button mat-menu-item (click)="downloadPdf(test._id, 'en')">
+                <mat-icon>language</mat-icon>
+                English Version
+              </button>
+              <button mat-menu-item (click)="downloadPdf(test._id, 'hi')">
+                <mat-icon>translate</mat-icon>
+                Hindi Version
+              </button>
+            </mat-menu>
+          </div>
+
+          <button mat-button color="primary" (click)="editTest(test)">
+            <mat-icon>edit</mat-icon>
+            Edit/View
+          </button>
+          <button mat-button color="primary" (click)="viewIntroduction(test)">
+            <mat-icon>menu_book</mat-icon>
+            Introduction
+          </button>
+          <button mat-button color="warn" (click)="deleteTest(test._id)">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
+        </div>
+      </mat-card-actions>
+
+      <!-- Loading indicator for PDF download -->
+      <div *ngIf="pdfDownloading() === test._id" class="pdf-loading-overlay">
+        <mat-spinner diameter="30"></mat-spinner>
+        <span>Generating PDF...</span>
+      </div>
+    </mat-card>
+  </div>
+
+  <div *ngIf="!loading() && tests().length === 0" class="no-tests">
+    <mat-card>
+      <mat-card-content>
+        <p>No tests available at the moment.</p>
+        <button *ngIf="isAdmin" mat-button color="primary" (click)="openCreateTestDialog()">
+          Create your first test
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<!-- Test introduction popup -->
+<div class="introduction-modal-overlay" *ngIf="showIntroductionModal" (click)="closeIntroduction()">
+  <section class="introduction-modal" role="dialog" aria-modal="true" aria-labelledby="introduction-title"
+    (click)="$event.stopPropagation()">
+    <header class="introduction-modal-header">
+      <div class="introduction-heading">
+        <span class="introduction-icon"><mat-icon>menu_book</mat-icon></span>
+        <div>
+          <span class="modal-eyebrow">TEST INFORMATION</span>
+          <h2 id="introduction-title">{{ introductionTest?.title }}</h2>
+        </div>
+      </div>
+      <button mat-icon-button aria-label="Close introduction" (click)="closeIntroduction()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </header>
+    <div class="introduction-modal-content">
+      <div *ngIf="introductionTest?.introPage; else noIntroduction" class="introduction-copy"
+        [innerHTML]="introductionTest?.introPage"></div>
+      <ng-template #noIntroduction>
+        <div class="empty-introduction">
+          <mat-icon>description</mat-icon>
+          <h3>No introduction available</h3>
+          <p>This test does not have introduction instructions yet.</p>
+        </div>
+      </ng-template>
+    </div>
+    <footer class="introduction-modal-footer">
+      <button mat-raised-button color="primary" (click)="closeIntroduction()">
+        <mat-icon>check</mat-icon>
+        Close
+      </button>
+    </footer>
+  </section>
+</div>
+
+<!-- Rules & Intro Modal -->
+<div class="rules-modal-overlay" *ngIf="showRulesModal">
+  <div class="rules-modal" [class.intro-mode]="showIntroPage">
+    <div class="rules-modal-header">
+      <!-- Rules Mode Header -->
+      <div *ngIf="!showIntroPage">
+        <h2 *ngIf="rulesLanguage === 'english'">Important Test Rules</h2>
+        <h2 *ngIf="rulesLanguage === 'hindi'">महत्वपूर्ण परीक्षा नियम</h2>
+
+        <div class="language-toggle">
+          <button mat-button [class.active]="rulesLanguage === 'english'"
+            (click)="rulesLanguage = 'english'">English</button>
+          <button mat-button [class.active]="rulesLanguage === 'hindi'"
+            (click)="rulesLanguage = 'hindi'">हिन्दी</button>
+        </div>
+      </div>
+
+      <!-- Intro Page Mode Header -->
+      <div *ngIf="showIntroPage">
+        <h2>{{ selectedTest?.title }}</h2>
+        <div class="test-info">
+          <!-- <div><strong>Duration:</strong> {{ selectedTest?.duration }} minutes</div>
+          <div><strong>Total Questions:</strong> {{ selectedTest?.totalQuestions }}</div>
+          <div><strong>Total Marks:</strong> {{ selectedTest?.totalMarks }}</div> -->
+        </div>
+      </div>
+    </div>
+
+    <div class="rules-modal-content">
+      <!-- Rules Content -->
+      <div *ngIf="!showIntroPage" class="rules-list">
+        <!-- English Rules -->
+          <!-- English Rules -->
+          <div *ngIf="rulesLanguage === 'english'" class="rules-list">
+            <!-- <h3>Important Test Rules:</h3> -->
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>Fullscreen Mode:</strong> The test must be taken in fullscreen mode only. The system will
+                automatically switch to fullscreen.</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>No Tab Switching:</strong> Switching browser tabs/windows is strictly prohibited.</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>No Page Refresh:</strong> Refreshing or reloading the page is not allowed.</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>Violation Limit:</strong> Maximum 3 violations allowed (tab switch/refresh). On 4th
+                violation, test auto-submits.</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>Timer Submission:</strong> Test auto-submits when timer reaches zero. Submit manually before
+                time ends.</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>Navigation:</strong> Use arrow keys (← →) to navigate between questions.</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>Review Questions:</strong> Press Spacebar to mark questions for review.</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>Auto-save:</strong> Progress auto-saves every 30 seconds. Do not rely on browser
+                back/close.</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>Technical Issues:</strong> No test restarts for technical issues caused by
+                violations.</span>
+            </div>
+          </div>
+
+          <!-- Hindi Rules -->
+          <div *ngIf="rulesLanguage === 'hindi'" class="rules-list">
+            <!-- <h3>महत्वपूर्ण परीक्षा नियम:</h3> -->
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>पूर्ण स्क्रीन मोड:</strong> परीक्षा केवल पूर्ण स्क्रीन मोड में दी जानी चाहिए। सिस्टम
+                स्वचालित रूप से पूर्ण स्क्रीन में बदल जाएगा।</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>टैब स्विचिंग निषेध:</strong> ब्राउज़र टैब/विंडो स्विच करना सख्त वर्जित है।</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>पेज रिफ्रेश निषेध:</strong> पेज को रिफ्रेश या रीलोड करने की अनुमति नहीं है।</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>उल्लंघन सीमा:</strong> अधिकतम 3 उल्लंघन (टैब स्विच/रिफ्रेश) की अनुमति है। 4वें उल्लंघन पर,
+                परीक्षा स्वचालित रूप से सबमिट हो जाएगी।</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>टाइमर सबमिशन:</strong> टाइमर शून्य होने पर परीक्षा स्वचालित रूप से सबमिट हो जाती है। समय
+                समाप्त होने से पहले मैन्युअल रूप से सबमिट करें।</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>नेविगेशन:</strong> प्रश्नों के बीच नेविगेट करने के लिए एरो कीज़ (← →) का उपयोग करें।</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>समीक्षा प्रश्न:</strong> समीक्षा के लिए प्रश्नों को चिह्नित करने के लिए स्पेसबार
+                दबाएं।</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>ऑटो-सेव:</strong> प्रगति हर 30 सेकंड में स्वचालित रूप से सेव होती है। ब्राउज़र बैक/क्लोज पर
+                भरोसा न करें।</span>
+            </div>
+            <div class="rule-item">
+              <mat-icon>error</mat-icon>
+              <span><strong>तकनीकी समस्याएं:</strong> उल्लंघनों के कारण होने वाली तकनीकी समस्याओं के लिए परीक्षा पुनः
+                आरंभ नहीं की जाएगी।</span>
+            </div>
+          </div>
+      </div>
+
+      <!-- Intro Page Content -->
+      <div *ngIf="showIntroPage" class="intro-page-content">
+        <div class="intro-page-scrollable" [innerHTML]="selectedTest?.introPage || 'No instructions available.'"></div>
+      </div>
+    </div>
+
+    <div class="rules-modal-footer">
+      <!-- Rules Mode Footer -->
+      <div *ngIf="!showIntroPage" class="rules-mode-footer">
+        <div class="agree-checkbox">
+          <mat-checkbox [(ngModel)]="agreeToRules" color="primary">
+            <span *ngIf="rulesLanguage === 'english'">I have read and agree to all the test rules and
+              instructions</span>
+            <span *ngIf="rulesLanguage === 'hindi'">मैंने सभी परीक्षा नियमों और निर्देशों को पढ़ लिया है और उनसे सहमत
+              हूं</span>
+          </mat-checkbox>
+        </div>
+
+        <div class="rules-modal-actions">
+          <button mat-button (click)="cancelStartTest()">
+            {{ rulesLanguage === 'english' ? 'Cancel' : 'रद्द करें' }}
+          </button>
+          <button mat-raised-button color="primary" (click)="proceedToIntroPage()" [disabled]="!agreeToRules">
+            {{ rulesLanguage === 'english' ? 'Next' : 'अगला' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Intro Page Mode Footer -->
+      <div *ngIf="showIntroPage" class="intro-mode-footer">
+        <div class="agree-checkbox">
+          <mat-checkbox [(ngModel)]="agreeToIntro" color="primary">
+            <span>I have read and understood all the instructions</span>
+          </mat-checkbox>
+        </div>
+
+        <div class="rules-modal-actions">
+          <button mat-button (click)="backToRules()">
+            Back
+          </button>
+          <button mat-raised-button color="primary" (click)="proceedToTest()" [disabled]="!agreeToIntro">
+            Start Test
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

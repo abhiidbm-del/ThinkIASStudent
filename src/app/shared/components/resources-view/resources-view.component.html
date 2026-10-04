@@ -1,0 +1,113 @@
+<div class="syllabus-viewer">
+  <div class="explorer-header">
+    <button class="back-button" (click)="goBack()">
+      <i class="fa fa-chevron-left"></i>
+      <span>Back</span>
+    </button>
+    <div class="header-content">
+      <i class="fa fa-graduation-cap header-icon"></i>
+      <h2>{{ formatName(syllabusType) }} Syllabus Explorer</h2>
+    </div>
+    
+    <!-- Language Selector -->
+    <div class="language-selector">
+      <button class="lang-btn" 
+              [class.active]="currentLanguage === 'en'"
+              (click)="switchLanguage('en')">
+        <span>EN</span>
+      </button>
+      <button class="lang-btn" 
+              [class.active]="currentLanguage === 'hi'"
+              (click)="switchLanguage('hi')">
+        <span>HI</span>
+      </button>
+      <div class="current-lang">
+        Active: {{ getLanguageDisplayName() }}
+      </div>
+    </div>
+  </div>
+
+  <div class="breadcrumb">
+    <div class="breadcrumb-container">
+      <span class="breadcrumb-home" (click)="navigateBreadcrumb(0)">
+        <i class="fa fa-home"></i>
+      </span>
+      <span *ngFor="let crumb of breadcrumbs; let i = index" 
+            class="breadcrumb-item"
+            [class.active]="i === breadcrumbs.length - 1"
+            (click)="navigateBreadcrumb(i)">
+        <i *ngIf="i === 0" class="fa fa-folder"></i>
+        {{ crumb.name }}
+        <span *ngIf="i < breadcrumbs.length - 1" class="separator">
+          <i class="fa fa-chevron-right"></i>
+        </span>
+      </span>
+    </div>
+  </div>
+
+  <div class="explorer-window">
+    <div class="content-pane">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading content...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && (!currentData || getObjectKeys(currentData).length === 0)" class="empty-folder">
+        <div class="empty-icon">
+          <i class="fa fa-folder-open"></i>
+        </div>
+        <h3>Empty Folder</h3>
+        <p>This folder doesn't contain any items</p>
+      </div>
+
+      <!-- Content Items -->
+      <div *ngFor="let key of getObjectKeys(currentData)" class="explorer-item">
+        <!-- Folder Items -->
+        <div *ngIf="isFolder(currentData[key])" 
+             class="folder"
+             (click)="navigateToFolder(key)">
+          <div class="folder-icon">
+            <i class="fa fa-folder"></i>
+            <i class="fa fa-folder-open folder-hover"></i>
+          </div>
+          <div class="item-info">
+            <span class="name">{{ formatItemName(key) }}</span>
+            <span class="type">Folder • {{ countItems(currentData[key], key) }} items</span>
+          </div>
+          <div class="folder-arrow">
+            <i class="fa fa-chevron-right"></i>
+          </div>
+        </div>
+
+        <!-- File Items -->
+        <div *ngIf="!isFolder(currentData[key])" 
+             class="file"
+             [class.unavailable]="!currentData[key]?.fileLink"
+             (click)="currentData[key]?.fileLink ? openFile(currentData[key].fileLink) : null">
+          <div class="file-icon">
+            <i class="material-icons">picture_as_pdf</i>
+            <div class="lang-indicator" *ngIf="getLanguageIndicator(currentData[key])">
+              {{ getLanguageIndicator(currentData[key]) }}
+            </div>
+          </div>
+          <div class="item-info">
+            <span class="name">{{ currentData[key]?.fileName || formatItemName(key) }}</span>
+            <span class="description">{{ currentData[key]?.description || 'PDF Document' }}</span>
+            <div class="language-info" *ngIf="currentData[key]?._hasEnglish && currentData[key]?._hasHindi">
+              
+            </div>
+           
+          </div>
+          <div class="file-action" *ngIf="currentData[key]?.fileLink">
+            <i class="fa fa-external-link"></i>
+          </div>
+          <div class="file-action unavailable" *ngIf="!currentData[key]?.fileLink">
+            <i class="fa fa-ban"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

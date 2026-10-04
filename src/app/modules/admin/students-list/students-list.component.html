@@ -1,0 +1,110 @@
+<!-- students-list.component.html - FIXED VERSION -->
+<div class="students-list-container">
+  <div class="header">
+    <div class="header-content">
+      <button mat-icon-button (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1>{{ 'All Students' | t }}</h1>
+        <p>{{ 'Manage and view all registered students' | t }}</p>
+      </div>
+    </div>
+    
+    <button mat-raised-button color="primary" (click)="exportStudents()" *ngIf="students().length > 0">
+      <mat-icon>download</mat-icon>
+      {{ 'Export CSV' | t }}
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading">
+    <mat-spinner></mat-spinner>
+    <p>{{ 'Loading students...' | t }}</p>
+  </div>
+
+  <!-- Students Table -->
+  <div *ngIf="!loading() && students().length > 0" class="students-content">
+    <mat-card>
+      <mat-card-content>
+        <table mat-table [dataSource]="students()" class="students-table">
+          
+          <!-- Name Column -->
+          <ng-container matColumnDef="fullName">
+            <th mat-header-cell *matHeaderCellDef>{{ 'Name' | t }}</th>
+            <td mat-cell *matCellDef="let student">
+              <div class="student-name">
+                <strong>{{ student.fullName }}</strong>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Email Column -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef>{{ 'Email' | t }}</th>
+            <td mat-cell *matCellDef="let student">
+              {{ student.email }}
+            </td>
+          </ng-container>
+
+          <!-- Phone Column -->
+          <ng-container matColumnDef="phone">
+            <th mat-header-cell *matHeaderCellDef>{{ 'Phone' | t }}</th>
+            <td mat-cell *matCellDef="let student">
+              {{ student.phone }}
+            </td>
+          </ng-container>
+
+          <!-- Joined Date Column -->
+          <ng-container matColumnDef="joinedDate">
+            <th mat-header-cell *matHeaderCellDef>{{ 'Joined Date' | t }}</th>
+            <td mat-cell *matCellDef="let student">
+              {{ student.createdAt | date:'mediumDate' }}
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <!-- <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>{{ 'Actions' | t }}</th>
+            <td mat-cell *matCellDef="let student">
+              <button mat-button color="primary" (click)="viewStudentResults(student._id)">
+                <mat-icon>visibility</mat-icon>{{ 'View Results' | t }}</button>
+            </td>
+          </ng-container> -->
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Summary Card -->
+    <mat-card class="summary-card">
+      <mat-card-header>
+        <mat-card-title>{{ 'Summary' | t }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="summary-stats">
+          <div class="summary-item">
+            <h3>{{ students().length }}</h3>
+            <p>{{ 'Total Students' | t }}</p>
+          </div>
+          <!-- <div class="summary-item">
+            <h3>{{ recentStudentsCount() }}</h3> 
+            <p>Joined This Month</p>
+          </div> -->
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- No Students Found -->
+  <div *ngIf="!loading() && students().length === 0" class="no-students">
+    <mat-card>
+      <mat-card-content>
+        <p>{{ 'No students found.' | t }}</p>
+        <p>{{ 'Students will appear here once they register.' | t }}</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

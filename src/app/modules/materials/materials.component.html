@@ -1,0 +1,146 @@
+<div class="materials-container">
+  <!-- Header -->
+  <div class="materials-header">
+    
+    
+    <div class="header-content">
+      <i class="fa fa-book header-icon"></i>
+      <h2>{{ section === 'mains' ? 'Mains Study Materials' : 'Prelims Study Materials' }}</h2>
+    </div>
+    
+    <div class="header-info">
+      <span>
+        <i class="fa fa-eye"></i>
+        View Only
+      </span>
+      <span *ngIf="currentItem">
+        <i class="fa fa-folder"></i>
+        {{ currentItem.name }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages-container" *ngIf="infoMessage || errorMessage">
+    <div class="message info" *ngIf="infoMessage">
+      <i class="fa fa-info-circle"></i>
+      {{ infoMessage }}
+      <button class="message-close" (click)="infoMessage = ''">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <div class="message error" *ngIf="errorMessage">
+      <i class="fa fa-exclamation-circle"></i>
+      {{ errorMessage }}
+      <button class="message-close" (click)="errorMessage = ''">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <div class="breadcrumb-container">
+        <button class="back-button" (click)="navigateUp()" [disabled]="!currentItem && navigationHistory.length === 0">
+      <i class="fa fa-chevron-left"></i>
+      <span>Back</span>
+    </button>
+      <span class="breadcrumb-home" (click)="navigateBreadcrumb(breadcrumbs[0])">
+        <i class="fa fa-home"></i>
+      </span>
+      <span *ngFor="let crumb of breadcrumbs; let i = index; let last = last" 
+            class="breadcrumb-item"
+            [class.active]="last"
+            (click)="navigateBreadcrumb(crumb)">
+        <i *ngIf="i === 1" class="fa fa-folder"></i>
+        {{ crumb.name }}
+        <span *ngIf="!last" class="separator">
+          <i class="fa fa-chevron-right"></i>
+        </span>
+      </span>
+    </div>
+    <div class="breadcrumb-info" *ngIf="currentItem">
+      <span class="info-item">
+        <i class="fa fa-clock"></i>
+        Updated: {{ currentItem.updatedAt | date:'mediumDate' }}
+      </span>
+      <span class="info-item" *ngIf="currentItem.type === 'folder'">
+        <i class="fa fa-file"></i>
+        {{ items.length }} items
+      </span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="loading-content">
+      <div class="spinner">
+        <i class="fa fa-spinner fa-spin"></i>
+      </div>
+      <p>Loading study materials...</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="materials-window" *ngIf="!loading">
+    <div class="content-pane">
+      <!-- Empty State -->
+      <div *ngIf="items.length === 0" class="empty-folder">
+        <div class="empty-icon">
+          <i class="fa fa-folder-open"></i>
+        </div>
+        <h3>No Materials Available</h3>
+        <p>This folder doesn't contain any study materials</p>
+        <p class="info-message">
+          <i class="fa fa-info-circle"></i>
+          Materials will be added by your instructor
+        </p>
+      </div>
+
+      <!-- Items Grid -->
+      <div *ngFor="let item of items" class="explorer-item">
+        <!-- Folder Item -->
+        <div *ngIf="item.type === 'folder'" 
+             class="folder"
+             (click)="navigateTo(item)">
+          <div class="folder-icon">
+            <i class="fa fa-folder"></i>
+            <i class="fa fa-folder-open folder-hover"></i>
+          </div>
+          <div class="item-info">
+            <span class="name">{{ item.name }}</span>
+            <span class="type">
+              <i class="fa fa-folder"></i>
+              Folder
+            </span>
+          </div>
+          <div class="folder-arrow">
+            <i class="fa fa-chevron-right"></i>
+          </div>
+        </div>
+
+        <!-- File Item -->
+        <div *ngIf="item.type === 'file'" 
+             class="file"
+             (click)="openFile(item)">
+          <div class="file-icon" [ngStyle]="{'background': getFileIconColor(item)}">
+            <i [class]="getFileIconClass(item)"></i>
+          </div>
+          <div class="item-info">
+            <span class="name">{{ item.name }}</span>
+            <span class="type">
+              <i class="fa fa-file"></i>
+              {{ getFileTypeLabel(item.fileType) }}
+            </span>
+            <span class="description" *ngIf="item.description">
+              {{ item.description }}
+            </span>
+          </div>
+          <div class="file-action">
+            <i class="fa fa-external-link"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

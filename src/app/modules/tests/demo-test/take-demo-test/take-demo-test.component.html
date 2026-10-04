@@ -1,0 +1,290 @@
+<div class="test-wrapper" *ngIf="test() && !loading()">
+
+  <!-- Top Bar -->
+  <div class="header-bar">
+    <div class="test-title">
+      <strong>{{ test().title }}</strong>
+      <span class="test-subtitle">{{ test().description }}</span>
+      <span class="demo-badge">Practice Test</span>
+    </div>
+
+    <!-- Language Switch Toggle -->
+    <div class="language-toggle-container">
+      <mat-radio-group [(ngModel)]="selectedLanguage" class="language-toggle" (change)="onLanguageChange()">
+        <mat-radio-button value="english">English</mat-radio-button>
+        <mat-radio-button value="hindi">हिन्दी</mat-radio-button>
+      </mat-radio-group>
+    </div>
+
+    <!-- Timer and Fullscreen Indicator -->
+    <div class="timer-container">
+      <div class="timer">
+        <mat-icon>access_time</mat-icon>
+        <span>Time Left: <strong>{{ formatTime(timeLeft()) }}</strong></span>
+      </div>
+      <div class="fullscreen-indicator" *ngIf="isFullscreen">
+        <mat-icon>fullscreen</mat-icon>
+        <span>Fullscreen</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Form -->
+  <form [formGroup]="testForm" class="test-grid" (keydown)="onKeyPress($event)">
+
+    <!-- LEFT PANEL (SINGLE QUESTION) -->
+    <div class="question-panel">
+      <mat-card class="question-card">
+        <mat-card-header>
+          <mat-card-title>
+            Question {{ currentQuestionIndex() + 1 }} of {{ test().questions.length }}
+            <span class="combined-marks-badge">
+              <span class="positive-mark">Marks: {{ test().marksPerQuestion }}</span>
+              <span class="separator">|</span>
+              <span class="negative-mark">Negative: {{ test().negativeMarks }}</span>
+            </span>
+          </mat-card-title>
+          <mat-card-subtitle *ngIf="isMarkedForReview(currentQuestionIndex())" class="review-flag">
+            <mat-icon>flag</mat-icon> Marked for Review
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="question-text" [innerHTML]="currentQuestion().question[selectedLanguage]"></div>
+          
+          <div class="question-instructions" *ngIf="test().instructions">
+            <mat-icon>info</mat-icon>
+            <span>{{ test().instructions }}</span>
+          </div>
+
+          <mat-radio-group [formControl]="getAnswerControl(currentQuestionIndex())" class="options-grid">
+            <mat-radio-button *ngFor="let option of currentQuestion().options; let j = index" [value]="j"
+              class="option-button" [disabled]="isTestSubmitted">
+              <span class="option-letter">{{ ['A', 'B', 'C', 'D'][j] }}</span>
+              <div [innerHTML]="option[selectedLanguage]"></div>
+            </mat-radio-button>
+          </mat-radio-group>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <div class="question-nav-hint">
+            <small>Use ← → arrow keys to navigate, Space to mark review, Ctrl+1-4 to select options</small>
+          </div>
+        </mat-card-actions>
+      </mat-card>
+
+      <!-- Navigation Buttons -->
+      <div class="navigation-buttons">
+        <button mat-raised-button type="button" (click)="previousQuestion()" 
+                [disabled]="currentQuestionIndex() === 0 || isTestSubmitted">
+          <mat-icon>arrow_back</mat-icon> Previous
+        </button>
+
+        <button mat-raised-button type="button" color="warn" (click)="clearAnswer()"
+                [disabled]="isTestSubmitted">
+          <mat-icon>clear</mat-icon> Clear
+        </button>
+
+        <button mat-raised-button type="button" color="accent" (click)="markForReview()"
+                [disabled]="isTestSubmitted">
+          <mat-icon>{{ isMarkedForReview(currentQuestionIndex()) ? 'bookmark_added' : 'bookmark_border' }}</mat-icon>
+          {{ isMarkedForReview(currentQuestionIndex()) ? 'Review Marked' : 'Mark for Review' }}
+        </button>
+
+        <button mat-raised-button type="button" color="primary" (click)="saveAndNext()"
+                [disabled]="isTestSubmitted">
+          Save & Next <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL (Question Palette) -->
+    <div class="side-panel">
+      <h3>Question Palette</h3>
+
+      <div class="question-palette">
+        <button type="button" *ngFor="let q of test().questions; let i = index" class="palette-btn"
+          [ngClass]="getQuestionStatusClass(i)" (click)="goToQuestion(i)" [disabled]="isTestSubmitted">
+          {{ i + 1 }}
+          <span class="palette-icon" *ngIf="isMarkedForReview(i)">
+            <mat-icon>bookmark</mat-icon>
+          </span>
+        </button>
+      </div>
+
+      <div class="stats-panel">
+        <div class="stat-item">
+          <span class="stat-label">Answered:</span>
+          <span class="stat-value answered">{{ getAnsweredCount() }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Not Answered:</span>
+          <span class="stat-value not-answered">{{ getNotAnsweredCount() }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Marked for Review:</span>
+          <span class="stat-value marked-review">{{ reviewQuestions().length }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Time Spent:</span>
+          <span class="stat-value">{{ formatTime(testDuration - timeLeft()) }}</span>
+        </div>
+      </div>
+
+      <div class="legend">
+        <h4>Legend</h4>
+        <div class="legend-grid">
+          <div class="legend-item">
+            <div class="color-box answered"></div>
+            <span>Answered</span>
+          </div>
+          <div class="legend-item">
+            <div class="color-box not-answered"></div>
+            <span>Not Answered</span>
+          </div>
+          <div class="legend-item">
+            <div class="color-box marked-review"></div>
+            <span>Marked for Review</span>
+          </div>
+          <div class="legend-item">
+            <div class="color-box current"></div>
+            <span>Current</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button mat-raised-button color="primary" class="submit-btn" (click)="showSubmitConfirmation()"
+                [disabled]="isTestSubmitted || showSubmitDialog || isSubmitting">
+          <mat-icon>send</mat-icon>
+          <span *ngIf="!isSubmitting">Submit Test</span>
+          <span *ngIf="isSubmitting">Submitting...</span>
+        </button>
+      </div>
+    </div>
+
+  </form>
+
+  <!-- Fullscreen Warning Overlay -->
+  <div class="fullscreen-warning" *ngIf="showFullscreenWarning && !showSubmitDialog">
+    <div class="warning-modal">
+      <mat-icon color="warn">fullscreen_exit</mat-icon>
+      <h2>Fullscreen Required!</h2>
+      <p>This test must be taken in fullscreen mode.</p>
+      <p>Please switch to fullscreen to continue.</p>
+      <button mat-raised-button color="primary" (click)="enterFullscreen()">
+        Switch to Fullscreen
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div *ngIf="loading()" class="loading-center">
+  <mat-spinner diameter="50"></mat-spinner>
+  <p>Loading demo test...</p>
+</div>
+
+<!-- CUSTOM SUBMIT DIALOG -->
+<div class="custom-dialog-overlay" *ngIf="showSubmitDialog">
+  <div class="custom-dialog-container">
+    <div class="custom-dialog-header">
+      <h2>Submit Practice Test</h2>
+      <button mat-icon-button class="close-btn" (click)="closeSubmitDialog()" [disabled]="isTestSubmitted">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    
+    <div class="custom-dialog-content">
+      <div class="submission-summary">
+        <p><strong>Test:</strong> {{ test()?.title }}</p>
+        <p><strong>Answered:</strong> {{ getAnsweredCount() }} / {{ test()?.questions.length }}</p>
+        <p><strong>Marked for Review:</strong> {{ reviewQuestions().length }}</p>
+        <p><strong>Time Spent:</strong> {{ formatTime(testDuration - timeLeft()) }}</p>
+        <p *ngIf="getNotAnsweredCount() > 0" class="warning-text">
+          <mat-icon>warning</mat-icon>
+          You have {{ getNotAnsweredCount() }} unanswered questions!
+        </p>
+        <p class="info-text">
+          <mat-icon>info</mat-icon>
+          You can retake this practice test anytime after submission.
+        </p>
+      </div>
+    </div>
+    
+    <div class="custom-dialog-actions">
+      <button mat-button (click)="closeSubmitDialog()" [disabled]="isTestSubmitted">Cancel</button>
+      <button mat-raised-button color="primary" (click)="confirmSubmit()" 
+              [disabled]="isTestSubmitted || isSubmitting">
+        <span *ngIf="!isSubmitting">Confirm Submit</span>
+        <span *ngIf="isSubmitting">Submitting...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS DIALOG -->
+<!-- <div class="custom-dialog-overlay" *ngIf="showResultsDialog">
+  <div class="custom-dialog-container results-dialog">
+    <div class="custom-dialog-header">
+      <h2>Practice Test Results</h2>
+    </div>
+    
+    <div class="custom-dialog-content">
+      <div class="simple-results">
+        <div class="result-icon" *ngIf="isAutoSubmitted">
+          <mat-icon color="warn" class="large-icon">timer_off</mat-icon>
+        </div>
+        <div class="result-icon" *ngIf="!isAutoSubmitted">
+          <mat-icon color="primary" class="large-icon">check_circle</mat-icon>
+        </div>
+        
+        <div class="result-message">
+          {{ resultsMessage }}
+        </div>
+        
+        <div class="score-display" *ngIf="submissionResult">
+          <div class="score-circle" [style.background]="getScoreColor(submissionResult.percentage)">
+            <span class="score-value">{{ submissionResult.percentage }}%</span>
+          </div>
+          <div class="score-details">
+            <div class="score-item">
+              <span class="score-label">Your Score:</span>
+              <span class="score-number">{{ submissionResult.score }}/{{ submissionResult.totalMarks }}</span>
+            </div>
+            <div class="score-breakdown" *ngIf="submissionResult.summary">
+              <span class="correct">Correct: {{ submissionResult.summary.correctAnswers }}</span>
+              <span class="wrong">Wrong: {{ submissionResult.summary.wrongAnswers }}</span>
+              <span class="unattempted">Unattempted: {{ submissionResult.summary.unattempted }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="time-spent">
+          <mat-icon>access_time</mat-icon>
+          <span>Time spent: {{ formatTime(testDuration - timeLeft()) }}</span>
+        </div>
+        
+        <div class="answered-count">
+          <mat-icon>assignment_turned_in</mat-icon>
+          <span>Questions answered: {{ getAnsweredCount() }}/{{ test()?.questions.length }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="custom-dialog-actions">
+      <button mat-stroked-button color="accent" (click)="viewDetailedResults()">
+        <mat-icon>analytics</mat-icon>
+        View Detailed Results
+      </button>
+      <button mat-raised-button color="primary" (click)="goToDemoTests()">
+        <mat-icon>library_books</mat-icon>
+        Back to Demo Tests
+      </button>
+      <button mat-raised-button color="primary" (click)="retakeTest()" *ngIf="!isAutoSubmitted">
+        <mat-icon>replay</mat-icon>
+        Retake Test
+      </button>
+    </div>
+  </div>
+</div> -->

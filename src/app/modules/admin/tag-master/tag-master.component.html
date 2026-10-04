@@ -1,0 +1,104 @@
+<div class="tag-management">
+  <div class="header">
+    <h2>Tag Management</h2>
+    <p>Create, edit, and manage tags for your content</p>
+  </div>
+
+  <!-- Message Display -->
+  <div *ngIf="message" class="message" [class]="messageType">
+    {{ message }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading tags...</p>
+  </div>
+
+  <div class="management-container">
+    <!-- Form Section -->
+    <div class="form-section">
+      <h3>{{ editingTag ? 'Edit Tag' : 'Create New Tag' }}</h3>
+      
+      <form [formGroup]="tagForm" (ngSubmit)="onSubmit()" class="tag-form">
+        <div class="form-group">
+          <label for="tagName">Tag Name *</label>
+          <input 
+            type="text" 
+            id="tagName"
+            formControlName="tag" 
+            placeholder="Enter tag name (e.g., History, Geography)"
+            class="form-control"
+            [class.error]="isFieldInvalid('tag')">
+          <div *ngIf="isFieldInvalid('tag')" class="error-message">
+            <span *ngIf="tagForm.get('tag')?.errors?.['required']">Tag name is required</span>
+            <span *ngIf="tagForm.get('tag')?.errors?.['minlength']">Tag must be at least 2 characters long</span>
+            <span *ngIf="tagForm.get('tag')?.errors?.['maxlength']">Tag cannot exceed 50 characters</span>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="isSubmitting || tagForm.invalid">
+            <span *ngIf="!isSubmitting">{{ editingTag ? 'Update' : 'Create' }} Tag</span>
+            <span *ngIf="isSubmitting">Processing...</span>
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-secondary"
+            (click)="resetForm()"
+            [disabled]="isSubmitting">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tags Listing Section -->
+    <div class="listing-section">
+      <div class="section-header">
+        <h3>All Tags</h3>
+        <span class="tag-count">{{ tags.length }} tag(s)</span>
+      </div>
+
+      <div *ngIf="tags.length === 0 && !isLoading" class="empty-state">
+        <i class="fa fa-tags"></i>
+        <p>No tags found. Create your first tag!</p>
+      </div>
+
+      <div class="tags-table" *ngIf="tags.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Tag Name</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tag of tags">
+              <td class="tag-name">
+                <span class="tag-badge">{{ tag.tag }}</span>
+              </td>
+              <td class="actions">
+                <button 
+                  class="btn-edit" 
+                  (click)="editTag(tag)"
+                  title="Edit tag">
+                  <i class="fa fa-edit"></i> Edit
+                </button>
+                <button 
+                  class="btn-delete" 
+                  (click)="deleteTag(tag)"
+                  title="Delete tag">
+                  <i class="fa fa-trash"></i> Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

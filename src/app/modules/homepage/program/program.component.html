@@ -1,0 +1,194 @@
+<div class="programs-section">
+  <!-- Header Section -->
+  <div class="programs-header">
+    <div class="container">
+      <h1 class="section-title">
+        <i class="fas fa-graduation-cap"></i>
+        {{ 'Our Programs' | t }}
+      </h1>
+      <p class="section-subtitle">
+        {{ 'Choose the right program for your UPSC preparation journey' | t }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="container">
+      <div class="filters-wrapper">
+        <!-- Category Filter -->
+        <div class="filter-group">
+          <label>
+            <i class="fas fa-filter"></i>
+            {{ 'Category' | t }}
+          </label>
+          <div class="filter-buttons">
+            <button 
+              *ngFor="let category of categories"
+              class="filter-btn"
+              [class.active]="selectedCategory === category"
+              (click)="selectedCategory = category; onCategoryChange()">
+              {{ category | t }}
+              <span class="count">{{ getCategoryCount(category) }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Year Filter -->
+        <div class="filter-group">
+          <label>
+            <i class="fas fa-calendar-alt"></i>
+            {{ 'Year' | t }}
+          </label>
+          <div class="filter-buttons">
+            <button 
+              class="filter-btn"
+              [class.active]="selectedYear === 'All'"
+              (click)="selectedYear = 'All'; onYearChange()">
+              {{ 'All Years' | t }}
+              <span class="count">{{ allPrograms.length }}</span>
+            </button>
+            <button 
+              *ngFor="let year of years"
+              class="filter-btn"
+              [class.active]="selectedYear === year"
+              (click)="selectedYear = year; onYearChange()">
+              {{ year }}
+              <span class="count">{{ getYearCount(year) }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Reset Button -->
+        <button class="reset-btn" (click)="resetFilters()" *ngIf="selectedCategory !== 'All' || selectedYear !== 'All'">
+          <i class="fas fa-undo-alt"></i>
+          {{ 'Reset Filters' | t }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>{{ 'Loading programs...' | t }}</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <i class="fas fa-exclamation-triangle"></i>
+    <p>{{ errorMessage | t }}</p>
+    <button class="reset-btn" (click)="fetchPrograms()">{{ 'Try again' | t }}</button>
+  </div>
+
+  <!-- Programs Grid Section -->
+  <div *ngIf="!isLoading && !errorMessage" class="programs-grid-section">
+    <div class="container">
+      <!-- Results Info -->
+      <div class="results-info" *ngIf="filteredPrograms.length > 0">
+        <p>
+          <i class="fas fa-chart-line"></i>
+          Showing {{ filteredPrograms.length }} program{{ filteredPrograms.length > 1 ? 's' : '' }}
+          <span *ngIf="selectedCategory !== 'All'"> in <strong>{{ selectedCategory }}</strong></span>
+          <span *ngIf="selectedYear !== 'All'"> for <strong>{{ selectedYear }}</strong></span>
+        </p>
+      </div>
+
+      <!-- No Results -->
+      <div *ngIf="filteredPrograms.length === 0" class="no-results">
+        <i class="fas fa-search"></i>
+        <h3>{{ 'No programs found' | t }}</h3>
+        <p>{{ 'Try adjusting your filters to find what you\'re looking for.' | t }}</p>
+        <button class="btn btn-primary" (click)="resetFilters()">
+          <i class="fas fa-undo-alt"></i>
+          {{ 'View All Programs' | t }}
+        </button>
+      </div>
+
+      <!-- Programs Grid -->
+      <div class="programs-grid" *ngIf="filteredPrograms.length > 0">
+        <article class="program-card" *ngFor="let program of filteredPrograms; trackBy: trackProgram">
+          <!-- Sale Badge -->
+          <div class="card-badge" *ngIf="program.discountedPrice">
+            <i class="fas fa-tag"></i>
+            {{ 'Sale' | t }}
+          </div>
+          
+          <!-- Card Image -->
+          <div class="card-image">
+            <img 
+              [src]="programImage(program)" 
+              [alt]="program.programName"
+              (error)="handleImageError($event)">
+            <div class="card-overlay">
+              <button class="view-details-btn" type="button" (click)="viewProgramBatches(program)">
+                <i class="fas fa-info-circle"></i> {{ 'View Details' | t }}
+              </button>
+            </div>
+          </div>
+          
+          <!-- Card Content -->
+          <div class="card-content">
+            <div class="program-category">
+              <i class="fas" 
+                 [class.fa-chalkboard-user]="program.programCategory === 'Mentorship Course'"
+                 [class.fa-graduation-cap]="program.programCategory === 'Optional Mentorship Course'"
+                 [class.fa-file-alt]="program.programCategory === 'Test Series'"
+                 [class.fa-pen-ruler]="program.programCategory === 'Optional Test Series'"
+                 [class.fa-pencil-alt]="program.programCategory === 'Essay'">
+              </i>
+              {{ program.programCategory | t }}
+            </div>
+            
+            <h3 class="program-title">{{ program.programName | t:program.programNameHindi }}</h3>
+            
+            <p class="program-description" *ngIf="program.description">
+              {{ (program.description | t:program.descriptionHindi) | slice:0:100 }}
+            </p>
+            
+            <div class="program-meta">
+              <span class="meta-item">
+                <i class="fas fa-calendar-alt"></i>
+                {{ program.year }}
+              </span>
+              <span class="meta-item" *ngIf="program.duration">
+                <i class="fas fa-clock"></i>
+                {{ program.duration | t:program.durationHindi }}
+              </span>
+            </div>
+            
+            <div class="program-features" *ngIf="program.features && program.features.length > 0">
+              <span class="feature-tag" *ngFor="let feature of program.features.slice(0, 3); let i = index">
+                <i class="fas fa-check-circle"></i>
+                {{ feature | t:program.featuresHindi?.[i] }}
+              </span>
+            </div>
+            
+            <div class="program-price">
+              <span class="current-price" *ngIf="program.discountedPrice">
+                ₹{{ program.discountedPrice | number }}
+              </span>
+              <span class="original-price" *ngIf="program.discountedPrice">
+                ₹{{ program.price | number }}
+              </span>
+              <span class="price" *ngIf="!program.discountedPrice">
+                ₹{{ program.price | number }}
+              </span>
+            </div>
+            
+            <div class="program-buttons">
+              <button class="btn-view-batches" type="button" (click)="viewProgramBatches(program)">
+                <i class="fas fa-layer-group"></i>
+                {{ 'View Batches' | t }}
+              </button>
+              <button class="btn-enroll" (click)="viewProgramBatches(program)">
+                <i class="fas fa-arrow-right"></i>
+                {{ 'Enroll Now' | t }}
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</div>

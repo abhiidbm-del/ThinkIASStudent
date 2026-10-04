@@ -1,0 +1,176 @@
+<div class="meeting-container student" [class.mains-mentorship]="audience === 'mains'" [class.pre-mentorship]="audience !== 'mains'">
+  <!-- Header -->
+  <div class="meeting-header">
+    <div class="header-content">
+      <i class="fa fa-calendar-check header-icon"></i>
+        <h2>{{ audience === 'mains' ? 'Mains Mentorship Sessions' : 'Prelims Mentorship Sessions' }}</h2>
+    </div>
+    <div class="header-info">
+      <!-- <span class="student-badge">
+        <i class="fa fa-user-graduate"></i>
+        Student View
+      </span> -->
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages-container" *ngIf="infoMessage || errorMessage">
+    <div class="message info" *ngIf="infoMessage">
+      <i class="fa fa-info-circle"></i>
+      {{ infoMessage }}
+      <button class="message-close" (click)="infoMessage = ''">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <div class="message error" *ngIf="errorMessage">
+      <i class="fa fa-exclamation-circle"></i>
+      {{ errorMessage }}
+      <button class="message-close" (click)="errorMessage = ''">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="loading-content">
+      <div class="spinner">
+        <i class="fa fa-spinner fa-spin"></i>
+      </div>
+      <p>Loading meetings...</p>
+    </div>
+  </div>
+
+  <!-- Upcoming Meetings -->
+  <div class="meetings-section" *ngIf="!loading">
+    <div class="section-header">
+      <h3>
+        <i class="fa fa-clock"></i>
+        Upcoming Meetings
+        <span class="badge">{{ upcomingMeetings.length }}</span>
+      </h3>
+      <div class="section-hint">
+        <i class="fa fa-info-circle"></i>
+        Join meetings using the provided links
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="upcomingMeetings.length === 0">
+      <i class="fa fa-calendar-times"></i>
+      <h4>No upcoming meetings scheduled</h4>
+      <p>Your instructor will schedule meetings here</p>
+    </div>
+
+    <div class="meetings-grid" *ngIf="upcomingMeetings.length > 0">
+      <div *ngFor="let meeting of upcomingMeetings" 
+           class="meeting-card" 
+           [class.live-now]="isMeetingNow(meeting)"
+           [class.upcoming]="isMeetingUpcoming(meeting)">
+        
+        <div class="card-header">
+          <div class="card-title">
+            <h4>{{ meeting.title }}</h4>
+            <span class="status-badge" [class.now]="isMeetingNow(meeting)" [class.upcoming]="isMeetingUpcoming(meeting)">
+              {{ isMeetingNow(meeting) ? 'Live Now' : 'Upcoming' }}
+            </span>
+          </div>
+          <div class="card-meta">
+            <span class="meta-item">
+              <i class="fa fa-clock"></i>
+              Duration: {{ formatDuration(meeting.duration) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="meeting-date">
+            <i class="fa fa-calendar-alt"></i>
+            <strong>{{ formatDate(meeting.meetingDate) }}</strong>
+            <small class="relative-time" *ngIf="isMeetingUpcoming(meeting)">
+              ({{ getRelativeTime(meeting.meetingDate) }})
+            </small>
+          </div>
+          
+          <div class="meeting-description" *ngIf="meeting.description">
+            <i class="fa fa-file-alt"></i>
+            {{ meeting.description }}
+          </div>
+          
+          <div class="meeting-link">
+            <i class="fa fa-link"></i>
+            <a [href]="meeting.meetingLink" target="_blank" class="join-link">
+              <i class="fa fa-external-link-alt"></i> Join Meeting
+            </a>
+          </div>
+        </div>
+
+        <div class="card-footer" *ngIf="isMeetingNow(meeting)">
+          <div class="live-indicator">
+            <i class="fa fa-circle live-dot"></i>
+            Meeting is live - Join now!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Meeting History -->
+  <div class="meetings-section" *ngIf="!loading && completedMeetings.length > 0">
+    <div class="section-header">
+      <h3>
+        <i class="fa fa-history"></i>
+        Past Meetings
+        <span class="badge">{{ completedMeetings.length }}</span>
+      </h3>
+      <div class="section-hint">
+        <i class="fa fa-info-circle"></i>
+        Watch recordings of past meetings
+      </div>
+    </div>
+
+    <div class="meetings-grid history">
+      <div *ngFor="let meeting of completedMeetings" class="meeting-card completed">
+        
+        <div class="card-header">
+          <div class="card-title">
+            <h4>{{ meeting.title }}</h4>
+            <span class="status-badge completed">
+              <i class="fa fa-check-circle"></i> Completed
+            </span>
+          </div>
+          <div class="card-meta">
+            <span class="meta-item">
+              <i class="fa fa-clock"></i>
+              {{ formatDuration(meeting.duration) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="meeting-date">
+            <i class="fa fa-calendar-alt"></i>
+            {{ formatDate(meeting.meetingDate) }}
+          </div>
+          
+          <div class="meeting-description" *ngIf="meeting.description">
+            <i class="fa fa-file-alt"></i>
+            {{ meeting.description }}
+          </div>
+          
+          <div class="meeting-recording" *ngIf="meeting.videoLink; else noRecording">
+            <i class="fa fa-video"></i>
+            <a [href]="meeting.videoLink" target="_blank" class="watch-link">
+              <i class="fa fa-play-circle"></i> Watch Recording
+            </a>
+          </div>
+          <ng-template #noRecording>
+            <div class="meeting-recording">
+              <i class="fa fa-video-slash"></i>
+              <span class="no-recording">Recording not available</span>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

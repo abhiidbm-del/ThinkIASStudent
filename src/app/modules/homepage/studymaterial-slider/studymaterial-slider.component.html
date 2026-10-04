@@ -1,0 +1,73 @@
+<!-- studymaterial-slider.component.html -->
+<section class="resource" id="resource">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="main_heading pt-3 pb-5 text-center">
+                    <p class="pb-2">
+                        <span class="en">Free Resources</span>
+                        <span class="hi">मुफ्त संसाधन</span>
+                    </p>
+                    <h4 class="sub_heading mb-2 text-white">
+                        <span class="en">Study Material Topic Wise</span>
+                        <span class="hi">विषयवार अध्ययन सामग्री</span>
+                    </h4>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading State -->
+        <div *ngIf="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="error" class="text-center py-5 text-danger">
+            {{ error }}
+        </div>
+
+        <!-- Modules Grid -->
+        <div *ngIf="!loading && !error && modules.length > 0" class="row">
+            <div class="col-12">
+            <div class="overflow-hidden swiper study_slider">
+                <div class="resource_card_slider swiper-wrapper">
+                    <!-- Dynamic Cards from API - Added click handler -->
+                    <div class="resource_card swiper-slide" *ngFor="let module of modules" 
+                         >
+                        <img [src]="getImageUrl(module.image)" [alt]="module.name.english" class="img">
+                        <div class="card_div">
+                            <div class="card_icon">
+                                <i [class]="'bi ' + module.icon"></i>
+                            </div>
+                            <div class="card_heading p-4 pt-2">
+                                <h5>
+                                    <span class="en">{{ module.name.english }}</span>
+                                    <span class="hi">{{ module.name.hindi }}</span>
+                                </h5>
+                            </div>
+                            <div class="res p-4 pt-0 d-flex justify-content-center align-items-center gap-3">
+                                <span class="en" (click)="openModuleContent(module)" style="cursor: pointer;">PYQ & Notes</span>
+                                <span class="hi" (click)="openModuleContent(module)" style="cursor: pointer;">पिछले प्रश्न & नोट्स</span>
+                                <span class="en" (click)="openModuleTest(module)" style="cursor: pointer;">Test</span>
+                                <span class="hi" (click)="openModuleTest(module)" style="cursor: pointer;">टेस्ट</span>
+                            </div>
+                            <div class="stripe">
+                                <span class="en">MODULE</span>
+                                <span class="hi">मॉड्यूल</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-pagination"></div>
+            </div>
+            </div>
+        </div>
+
+        <!-- No Modules State -->
+        <div *ngIf="!loading && !error && modules.length === 0" class="text-center py-5">
+            <p>No modules available yet.</p>
+        </div>
+    </div>
+</section>

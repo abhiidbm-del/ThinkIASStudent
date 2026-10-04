@@ -1,0 +1,380 @@
+.profile-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 100px);
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 1.5rem;
+  
+  p {
+    color: #666;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}
+
+/* Error State */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 3rem;
+  background: #fafafa;
+  border-radius: 12px;
+  margin: 2rem;
+  
+  .error-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: #dc3545;
+    margin-bottom: 1.5rem;
+    opacity: 0.8;
+  }
+  
+  h2 {
+    color: #333;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 1.75rem;
+  }
+  
+  p {
+    color: #666;
+    margin-bottom: 2rem;
+    max-width: 400px;
+    line-height: 1.6;
+    font-size: 1rem;
+  }
+  
+  button {
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+  }
+}
+
+/* Header Section */
+.header-section {
+  margin-bottom: 3rem;
+  text-align: left;
+  
+  .page-title {
+    color: #2c3e50;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+  }
+  
+  .page-subtitle {
+    color: #7f8c8d;
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 400;
+  }
+}
+
+/* Profile Card */
+.profile-overview {
+  margin-bottom: 2rem;
+}
+
+.profile-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+  overflow: hidden;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  padding: 2rem 2rem 1.5rem;
+  
+  .profile-avatar {
+    margin-right: 1.5rem;
+    
+    .avatar-icon {
+      width: 80px;
+      height: 80px;
+      font-size: 80px;
+      color: #3498db;
+      opacity: 0.9;
+    }
+  }
+  
+  .profile-info {
+    flex: 1;
+    
+    .profile-name {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 0.25rem;
+    }
+    
+    .mat-card-subtitle {
+      color: #7f8c8d;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .role-badge {
+      display: inline-block;
+      padding: 0.35rem 1rem;
+      background: #e8f4fc;
+      color: #3498db;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+/* Info Grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  
+  &:hover {
+    background: #f8f9fa;
+  }
+  
+  .info-icon {
+    color: #3498db;
+    margin-right: 1rem;
+    margin-top: 0.25rem;
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.info-label {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.status-active {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+/* Plan Section */
+.plan-section {
+  .plan-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    
+    .mat-card-header {
+      padding: 1.5rem 1.5rem 0;
+      
+      .mat-card-title {
+        color: #2c3e50;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      
+      .mat-card-subtitle {
+        color: #7f8c8d;
+        font-size: 0.95rem;
+      }
+    }
+  }
+}
+
+.plan-details {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.plan-features {
+  flex: 1;
+  min-width: 300px;
+  
+  p {
+    display: flex;
+    align-items: center;
+    color: #2c3e50;
+    margin: 0.75rem 0;
+    font-size: 0.95rem;
+    
+    .feature-icon {
+      color: #27ae60;
+      margin-right: 0.75rem;
+      width: 20px;
+      height: 20px;
+      font-size: 20px;
+    }
+  }
+}
+
+.upgrade-btn {
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
+  
+  mat-icon {
+    margin-right: 0.75rem;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+  
+  &:hover {
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+    transform: translateY(-2px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 1.5rem;
+  }
+  
+  .header-section {
+    margin-bottom: 2rem;
+    
+    .page-title {
+      font-size: 1.75rem;
+    }
+  }
+  
+  .profile-header {
+    padding: 1.5rem;
+    flex-direction: column;
+    text-align: center;
+    
+    .profile-avatar {
+      margin-right: 0;
+      margin-bottom: 1.5rem;
+      
+      .avatar-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 70px;
+      }
+    }
+    
+    .profile-info {
+      .profile-name {
+        font-size: 1.5rem;
+      }
+    }
+  }
+  
+  .info-grid {
+    padding: 1.5rem;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .plan-details {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 1.5rem;
+    
+    .plan-features {
+      min-width: auto;
+    }
+    
+    .upgrade-btn {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 1rem;
+  }
+  
+  .header-section {
+    .page-title {
+      font-size: 1.5rem;
+    }
+  }
+  
+  .profile-header {
+    padding: 1.25rem;
+    
+    .profile-avatar .avatar-icon {
+      width: 60px;
+      height: 60px;
+      font-size: 60px;
+    }
+  }
+  
+  .info-grid {
+    padding: 1.25rem;
+  }
+  
+  .info-item {
+    padding: 0.875rem;
+    
+    .info-icon {
+      width: 20px;
+      height: 20px;
+      font-size: 20px;
+    }
+  }
+  
+  .info-value {
+    font-size: 1rem;
+  }
+}

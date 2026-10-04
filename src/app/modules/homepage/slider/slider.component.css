@@ -1,0 +1,708 @@
+
+
+/* ===== Text Wrapper ===== */
+
+.banner_text_design {
+  color: #ffffff;
+  max-width: 620px;
+}
+
+/* ===== Top Tagline ===== */
+
+.banner_main_heading p {
+  font-size: 15px;
+  font-weight: 600;
+  font-style: italic;
+  color: #f6c343; /* Yellow accent */
+  margin-bottom: 14px;
+  letter-spacing: 0.3px;
+}
+
+/* ===== Main Heading ===== */
+
+.banner_sub_heading h1 {
+  font-size: 46px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 18px;
+}
+
+/* ===== Supporting Text ===== */
+
+.banner_text {
+  font-size: 16px;
+  color: #d6e2f0;
+  margin-bottom: 22px;
+  line-height: 1.6;
+}
+
+/* ===== Bullet List ===== */
+
+.banner_text_list ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 28px;
+}
+
+.banner_text_list li {
+  font-size: 15px;
+  color: #ffffff;
+  display: flex;
+  align-items: flex-start;
+}
+
+.banner_text_list i {
+  color: #00e676; 
+  font-size: 18px;
+  margin-top: 2px;
+}
+
+
+.slide-2 .banner_text_design {
+  color: #0a2540;
+}
+
+.slide-2 .banner_sub_heading h1 {
+  color: #0a2540;
+  font-size: 44px;
+  max-width: 80%;
+}
+
+.slide-2 .banner_sub_heading span {
+  color: #0b5ed7;
+}
+
+.slide-2 .banner_text {
+  color: #4b5f7a;
+  font-size: 15px;
+  max-width: 80%;
+}
+
+
+@media (max-width: 768px) {
+  .banner_sub_heading h1 {
+    font-size: 32px;
+  }
+
+  .banner_text_design {
+    max-width: 100%;
+  }
+}
+
+
+/* ================= Slide 3 ================= */
+
+.slide-3 .banner_text_design {
+  color: #ffffff;
+}
+
+.slide-3 .banner_sub_heading h1 {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #ffffff;
+  margin-bottom: 18px;
+}
+
+.slide-3 .banner_sub_heading span {
+  color: #ffffff;
+}
+
+.slide-3 .banner_highlight_text {
+  font-size: 34px;
+  font-weight: 800;
+  color: #ffeb3b;
+  margin-bottom: 6px;
+}
+
+.slide-3 .banner_text {
+  font-size: 22px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 28px;
+}
+
+/* Join text with line */
+.slide-3 .banner_small_heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.slide-3 .banner_small_heading .line {
+  width: 60px;
+  height: 2px;
+  background: #ffffff;
+  opacity: 0.7;
+}
+
+.slide-3 .banner_small_heading .text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Button override */
+.slide-3 .common_button {
+  background: #ffffff;
+  color: #0a2540;
+}
+
+.slide-3 .common_button:hover {
+  background: #ffeb3b;
+  color: #000;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .slide-3 .banner_sub_heading h1 {
+    font-size: 30px;
+  }
+
+  .slide-3 .banner_highlight_text {
+    font-size: 24px;
+  }
+
+  .slide-3 .banner_text {
+    font-size: 18px;
+  }
+}
+
+
+/* ================= Slide 4 ================= */
+
+.slide-4 .banner_text_design {
+  color: #111111;
+}
+
+.slide-4 .banner_sub_heading h1 {
+  font-size: 41px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #000000;
+  margin-bottom: 16px;
+  max-width: 100%;
+}
+
+.slide-4 .banner_text {
+  font-size: 16px;
+  color: #555555;
+  line-height: 1.6;
+  margin-bottom: 28px;
+  max-width: 85%;
+}
+
+/* Button styling */
+.slide-4 .common_button {
+  background: #ffffff;
+  color: #0a2540;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.slide-4 .common_button:hover {
+  background: #0a2540;
+  color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .slide-4 .banner_sub_heading h1 {
+    font-size: 30px;
+  }
+
+  .slide-4 .banner_text {
+    font-size: 14px;
+  }
+}
+
+
+.slide-5 .banner_text_design {
+  color: #ffffff;
+}
+
+.slide-5 .banner_sub_heading h1 {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #ffffff;
+  margin-bottom: 16px;
+  max-width: 90%;
+}
+
+.slide-5 .banner_text {
+  font-size: 16px;
+  color: #e6e6ff;
+  line-height: 1.6;
+  margin-bottom: 30px;
+  max-width: 85%;
+}
+
+/* ===== Mobile Responsive Styles (up to 767px) ===== */
+
+@media (max-width: 767px) {
+  /* Swiper Container - Keep exactly as is */
+  .mySwiper {
+    height: auto;
+    min-height: 400px;
+    max-height: 500px;
+    width: 100%;
+    aspect-ratio: 16/9;
+  }
+
+  /* Background Image - Keep exactly as is */
+  .swiper-slide {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .swiper-slide img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* Container and Row */
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+    height: 100%;
+  }
+
+  .row {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Text Content Container - Reduced padding */
+  .banner_text_design {
+    max-width: 100%;
+    padding: 10px 10px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 6px;
+    backdrop-filter: blur(2px);
+    margin: 0;
+    animation: fadeInMobile 0.6s ease-out;
+  }
+
+  @keyframes fadeInMobile {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Slide 2 & 4 - Light background adjustments */
+  .slide-2 .banner_text_design,
+  .slide-4 .banner_text_design {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Top Tagline - Further reduced */
+  .banner_main_heading p {
+    font-size: 8px;
+    margin-bottom: 3px;
+  }
+
+  /* Main Heading - Further reduced */
+  .banner_sub_heading h1 {
+    font-size: 13px;
+    line-height: 1.2;
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+
+  /* Slide-specific heading sizes - Further reduced */
+  .slide-2 .banner_sub_heading h1,
+  .slide-3 .banner_sub_heading h1,
+  .slide-5 .banner_sub_heading h1 {
+    font-size: 11px;
+  }
+
+  .slide-4 .banner_sub_heading h1 {
+    font-size: 11px;
+  }
+
+  /* Supporting Text - Further reduced, remove line clamp */
+  .banner_text {
+    font-size: 8px;
+    line-height: 1.2;
+    margin-bottom: 5px;
+    color: #e0e0e0;
+    /* Remove line clamp to show all text */
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+  .slide-2 .banner_text,
+  .slide-4 .banner_text {
+    color: #4a4a4a;
+  }
+
+  /* Bullet List - Hide by default on mobile */
+  .banner_text_list {
+    display: none;
+  }
+
+  /* Slide 3 Specific Styles - Further reduced */
+  .slide-3 .banner_highlight_text {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  .slide-3 .banner_text {
+    font-size: 9px;
+    margin-bottom: 5px;
+    display: block;
+    -webkit-line-clamp: unset;
+  }
+
+  .slide-3 .banner_small_heading {
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+
+  .slide-3 .banner_small_heading .line {
+    width: 15px;
+    height: 1px;
+  }
+
+  .slide-3 .banner_small_heading .text {
+    font-size: 9px;
+  }
+
+  /* Button - Further reduced */
+  /* .common_button {
+    padding: 1px;
+    margin-top: 2px;
+  }
+
+  .button_icon {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+
+  .button_icon img {
+    width: 10px;
+    height: 10px;
+  }
+
+  .common_button span {
+    font-size: 8px;
+    padding-right: 6px !important;
+  } */
+
+  /* Slide 2 & 4 Button Adjustments */
+  .slide-2 .common_button,
+  .slide-4 .common_button {
+    background: rgba(10, 37, 64, 0.1);
+  }
+
+  .slide-2 .common_button:hover,
+  .slide-4 .common_button:hover {
+    background: #0a2540;
+  }
+
+  /* Pagination - Smaller */
+  .swiper-pagination {
+    bottom: 5px !important;
+  }
+
+  .swiper-pagination-bullet {
+    width: 4px;
+    height: 4px;
+    margin: 0 2px !important;
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .swiper-pagination-bullet-active {
+    background: #ffffff;
+    width: 12px;
+    border-radius: 2px;
+  }
+
+  /* Slide 2 & 4 Pagination */
+  .slide-2 .swiper-pagination-bullet,
+  .slide-4 .swiper-pagination-bullet {
+    background: rgba(10, 37, 64, 0.5);
+  }
+
+  .slide-2 .swiper-pagination-bullet-active,
+  .slide-4 .swiper-pagination-bullet-active {
+    background: #0a2540;
+  }
+}
+
+/* Only five homepage slides are available; hide stale trailing pagination dots. */
+.swiper-pagination-bullet:nth-child(n + 6) {
+  display: none;
+}
+
+/* ===== Small Mobile (up to 480px) ===== */
+@media (max-width: 480px) {
+  .mySwiper {
+    min-height: 350px;
+    max-height: 400px;
+  }
+
+  .banner_text_design {
+    padding: 8px;
+  }
+
+  .banner_sub_heading h1 {
+    font-size: 11px;
+  }
+
+  .slide-2 .banner_sub_heading h1,
+  .slide-3 .banner_sub_heading h1,
+  .slide-5 .banner_sub_heading h1 {
+    font-size: 10px;
+  }
+
+  .slide-4 .banner_sub_heading h1 {
+    font-size: 9px;
+  }
+
+  .banner_text {
+    font-size: 7px;
+    margin-bottom: 4px;
+  }
+
+  .banner_main_heading p {
+    font-size: 7px;
+    margin-bottom: 2px;
+  }
+
+  .slide-3 .banner_highlight_text {
+    font-size: 10px;
+  }
+
+  .slide-3 .banner_text {
+    font-size: 8px;
+    margin-bottom: 4px;
+  }
+
+  .button_icon {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .button_icon img {
+    width: 9px;
+    height: 9px;
+  }
+
+  .common_button span {
+    font-size: 7px;
+    padding-right: 4px !important;
+  }
+}
+
+/* ===== Extra Small Mobile (up to 360px) ===== */
+@media (max-width: 360px) {
+  .mySwiper {
+    min-height: 300px;
+    max-height: 350px;
+  }
+
+  .banner_text_design {
+    padding: 6px;
+  }
+
+  .banner_sub_heading h1 {
+    font-size: 9px;
+    margin-bottom: 3px;
+  }
+
+  .slide-2 .banner_sub_heading h1,
+  .slide-3 .banner_sub_heading h1,
+  .slide-5 .banner_sub_heading h1 {
+    font-size: 8px;
+  }
+
+  .banner_text {
+    font-size: 6px;
+    margin-bottom: 3px;
+  }
+
+  .banner_main_heading p {
+    font-size: 6px;
+  }
+
+  .slide-3 .banner_highlight_text {
+    font-size: 9px;
+  }
+
+  .slide-3 .banner_text {
+    font-size: 7px;
+    margin-bottom: 3px;
+  }
+
+  .slide-3 .banner_small_heading .line {
+    width: 10px;
+  }
+
+  .slide-3 .banner_small_heading .text {
+    font-size: 7px;
+  }
+
+  .button_icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .button_icon img {
+    width: 8px;
+    height: 8px;
+  }
+
+  .common_button span {
+    font-size: 6px;
+    padding-right: 3px !important;
+  }
+}
+
+/* ===== Landscape Mode on Mobile ===== */
+@media (max-width: 767px) and (orientation: landscape) {
+  .mySwiper {
+    height: 300px;
+    min-height: 280px;
+    max-height: 320px;
+  }
+
+  .banner_text_design {
+    max-width: 60%;
+    padding: 6px 8px;
+  }
+
+  /* Show bullet list in landscape */
+  .banner_text_list {
+    display: block;
+  }
+
+  .banner_text_list ul {
+    margin-bottom: 3px;
+  }
+
+  .banner_text_list li {
+    font-size: 6px;
+    margin-bottom: 1px !important;
+  }
+
+  .banner_text_list i {
+    font-size: 7px;
+  }
+
+  .banner_sub_heading h1 {
+    font-size: 11px;
+    margin-bottom: 3px;
+  }
+
+  .banner_text {
+    font-size: 6px;
+    margin-bottom: 3px;
+  }
+
+  .slide-3 .banner_highlight_text {
+    font-size: 10px;
+  }
+
+  .slide-3 .banner_text {
+    font-size: 8px;
+  }
+
+  .common_button {
+    margin-top: 1px;
+  }
+
+  .button_icon {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .button_icon img {
+    width: 9px;
+    height: 9px;
+  }
+
+  .common_button span {
+    font-size: 7px;
+    padding-right: 4px !important;
+  }
+
+  /* Adjust pagination position */
+  .swiper-pagination {
+    bottom: 3px !important;
+  }
+}
+
+/* ===== Tablet (768px to 991px) - Keep as is ===== */
+@media (min-width: 768px) and (max-width: 991px) {
+  .mySwiper {
+    height: 400px;
+    aspect-ratio: 16/7;
+  }
+
+  .banner_sub_heading h1 {
+    font-size: 26px;
+  }
+
+  .slide-2 .banner_sub_heading h1,
+  .slide-3 .banner_sub_heading h1,
+  .slide-5 .banner_sub_heading h1 {
+    font-size: 24px;
+  }
+
+  .slide-4 .banner_sub_heading h1 {
+    font-size: 22px;
+  }
+
+  .banner_text {
+    font-size: 12px;
+  }
+
+  .banner_text_list li {
+    font-size: 12px;
+  }
+}
+
+/* ===== Touch Device Optimizations ===== */
+@media (hover: none) and (pointer: coarse) {
+  .common_button:hover {
+    transform: none;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .common_button:active {
+    transform: scale(0.98);
+  }
+
+  .slide-2 .common_button:hover,
+  .slide-4 .common_button:hover {
+    background: rgba(10, 37, 64, 0.1);
+  }
+}
+
+/* ===== High-DPI Screens ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .banner_text_design {
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  .swiper-slide img {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
