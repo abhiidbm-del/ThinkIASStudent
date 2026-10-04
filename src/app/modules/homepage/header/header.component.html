@@ -77,6 +77,8 @@
                         <li (click)="scrollToSection('materials')"><a href="javascript:void(0)"
                             class="en">Syllabus</a><a href="javascript:void(0)" class="hi">पाठ्यक्रम</a></li>
 
+                        <li><a routerLink="/programs" class="en">Exam Journey</a><a routerLink="/programs" class="hi">परीक्षा यात्रा</a></li>
+
                         <!-- Mentorship Program Dropdown -->
                         <li class="dropdown position-relative" *ngFor="let group of programGroups"><a class="dropdown-toggle" href="#" (click)="$event.preventDefault()" data-bs-toggle="dropdown">{{currentLanguage==='hi'?group.hi:group.label}}</a><div class="dropdown-menu"><a class="dropdown-item" *ngFor="let program of groupPrograms(group)" [routerLink]="['/program',program._id]">{{programDisplayName(program)}}</a></div></li>
 
@@ -152,6 +154,11 @@
         <li (click)="scrollToSection('materials'); closeMobileMenu()">
             <a class="d-block py-2 en" [class.hide]="currentLanguage !== 'en'">Syllabus</a>
             <a class="d-block py-2 hi" [class.hide]="currentLanguage !== 'hi'">पाठ्यक्रम</a>
+        </li>
+
+        <li>
+            <a routerLink="/programs" (click)="closeMobileMenu()" class="d-block py-2 en" [class.hide]="currentLanguage !== 'en'">Exam Journey</a>
+            <a routerLink="/programs" (click)="closeMobileMenu()" class="d-block py-2 hi" [class.hide]="currentLanguage !== 'hi'">परीक्षा यात्रा</a>
         </li>
 
         <!-- Mentorship Program Mobile -->

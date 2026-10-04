@@ -16,11 +16,45 @@
   <div class="filters-section">
     <div class="container">
       <div class="filters-wrapper">
-        <!-- Category Filter -->
+        <div class="filter-group">
+          <label>
+            <i class="fas fa-university"></i>
+            {{ 'Examination' | t }}
+          </label>
+          <div class="filter-buttons">
+            <button
+              *ngFor="let examination of examinations"
+              class="filter-btn"
+              [class.active]="selectedExamination === examination"
+              (click)="selectedExamination = examination; onCategoryChange()">
+              {{ examination === 'All' ? ('All' | t) : examination }}
+              <span class="count">{{ getExaminationCount(examination) }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label>
+            <i class="fas fa-route"></i>
+            {{ 'Program' | t }}
+          </label>
+          <div class="filter-buttons">
+            <button
+              *ngFor="let stage of stages"
+              class="filter-btn"
+              [class.active]="selectedStage === stage"
+              (click)="selectedStage = stage; onCategoryChange()">
+              {{ stage === 'All' ? ('All' | t) : (stage | t) }}
+              <span class="count">{{ getStageCount(stage) }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Plan filter -->
         <div class="filter-group">
           <label>
             <i class="fas fa-filter"></i>
-            {{ 'Category' | t }}
+            {{ 'Plan' | t }}
           </label>
           <div class="filter-buttons">
             <button 
@@ -60,7 +94,7 @@
         </div>
 
         <!-- Reset Button -->
-        <button class="reset-btn" (click)="resetFilters()" *ngIf="selectedCategory !== 'All' || selectedYear !== 'All'">
+        <button class="reset-btn" (click)="resetFilters()" *ngIf="selectedExamination !== 'All' || selectedStage !== 'All' || selectedCategory !== 'All' || selectedYear !== 'All'">
           <i class="fas fa-undo-alt"></i>
           {{ 'Reset Filters' | t }}
         </button>
@@ -89,7 +123,9 @@
         <p>
           <i class="fas fa-chart-line"></i>
           Showing {{ filteredPrograms.length }} program{{ filteredPrograms.length > 1 ? 's' : '' }}
-          <span *ngIf="selectedCategory !== 'All'"> in <strong>{{ selectedCategory }}</strong></span>
+          <span *ngIf="selectedExamination !== 'All'"> for <strong>{{ selectedExamination }}</strong></span>
+          <span *ngIf="selectedStage !== 'All'"> · <strong>{{ selectedStage | t }}</strong></span>
+          <span *ngIf="selectedCategory !== 'All'"> in <strong>{{ selectedCategory | t }}</strong></span>
           <span *ngIf="selectedYear !== 'All'"> for <strong>{{ selectedYear }}</strong></span>
         </p>
       </div>
@@ -147,6 +183,18 @@
             </p>
             
             <div class="program-meta">
+              <span class="meta-item" *ngIf="program.examination">
+                <i class="fas fa-university"></i>
+                {{ program.examination }}
+              </span>
+              <span class="meta-item" *ngIf="program.programStage">
+                <i class="fas fa-route"></i>
+                {{ program.programStage | t }}
+              </span>
+              <span class="meta-item" *ngIf="program.paperVariant">
+                <i class="fas fa-file-alt"></i>
+                {{ program.paperVariant }}
+              </span>
               <span class="meta-item">
                 <i class="fas fa-calendar-alt"></i>
                 {{ program.year }}
