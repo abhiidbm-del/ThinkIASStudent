@@ -390,9 +390,9 @@
 
 /* Language Display Logic */
 .hi { display: none; }
-.en { display: inline-block; }
+.en { display: block; }
 
-body.hindi .hi { display: inline-block !important; }
+body.hindi .hi { display: block !important; }
 body.hindi .en { display: none !important; }
 
 /* Fix for list items with both languages */
@@ -716,39 +716,6 @@ li .en {
 /* Videos Section Styles */
 .live-videos-section {
   background-color: #ffffff;
-}
-
-.video-slider {
-  overflow: hidden;
-}
-
-.video-slider .swiper-slide {
-  height: auto;
-}
-
-.video-slider-controls {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin: -14px 0 18px;
-}
-
-.video-slider-controls button {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid #d8dee5;
-  border-radius: 50%;
-  background: #fff;
-  color: #263746;
-  cursor: pointer;
-}
-
-.video-slider-controls button:hover {
-  border-color: #263746;
-  background: #263746;
-  color: #fff;
 }
 
 .main-title {

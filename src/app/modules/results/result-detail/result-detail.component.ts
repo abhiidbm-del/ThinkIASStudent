@@ -942,26 +942,6 @@ export class ResultDetailComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate([isDemoTest ? '/demo-tests' : '/prelims-results']);
   }
 
-  downloadQuestionPaper() {
-    const res = this.result();
-    if (!res?.test?.questions?.length) {
-      this.snackBar.open('Question paper is not available yet', 'Close', { duration: 3000 });
-      return;
-    }
-    const printWindow = window.open('', '_blank', 'width=900,height=700');
-    if (!printWindow) return;
-    const body = res.test.questions.map((question: any, index: number) => {
-      const options = (question.options || []).map((option: any, optionIndex: number) =>
-        `<li>${this.getOptionLetter(optionIndex)}. ${this.getOptionText(option)}</li>`
-      ).join('');
-      return `<article><h3>Q${index + 1}.</h3><div>${this.getQuestionText(question)}</div><ol>${options}</ol></article>`;
-    }).join('');
-    printWindow.document.write(`<!doctype html><html><head><title>${res.test.title} - Question Paper</title><style>body{font-family:Segoe UI,sans-serif;padding:24px;color:#102a43}article{margin:0 0 22px;page-break-inside:avoid}ol{padding-left:20px}</style></head><body><h1>${res.test.title}</h1>${body}</body></html>`);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  }
-
   // Get questions by category
   getQuestionsByCategory(category: string): any[] {
     const res = this.result();

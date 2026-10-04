@@ -22,10 +22,8 @@ export class MeetingComponent implements OnInit {
   constructor(private meetingService: MeetingService, private route: ActivatedRoute) {}
   
   ngOnInit() {
-    this.route.data.subscribe((data) => {
-      this.audience = data['audience'] === 'mains' ? 'mains' : 'pre';
-      this.loadMeetings();
-    });
+    this.audience = this.route.snapshot.data['audience'] === 'mains' ? 'mains' : 'pre';
+    this.loadMeetings();
   }
   
   loadMeetings() {

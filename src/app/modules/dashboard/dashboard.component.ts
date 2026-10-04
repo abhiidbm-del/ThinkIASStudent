@@ -1,16 +1,13 @@
 import { TranslatePipe } from '../../shared/i18n/translate.pipe';
-import { AfterViewChecked, Component, computed, ElementRef, inject, signal, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, inject, signal, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environment/environment';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../shared/services/auth.service';
 import { TestService } from '../../shared/services/test.service';
-import { LiveTest, LiveTestService } from '../../shared/services/live-test.service';
 import { PaymentDialogComponent } from './payment-dialog/payment-dialog.component';
 import { UserService } from '../../shared/services/user.service';
 
@@ -38,22 +35,14 @@ Chart.register(...registerables);
 export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
   private authService = inject(AuthService);
   private testService = inject(TestService);
-  private liveTestService = inject(LiveTestService);
   private userService = inject(UserService);
   private planService = inject(PublicPlanService);
-  private http = inject(HttpClient);
 
   private router = inject(Router);
   private dialog = inject(MatDialog);
 
   currentUser = this.authService.currentUser;
   upcomingTests = signal<any[]>([]);
-  prelimsExams = signal<any[]>([]);
-  mainsExams = signal<any[]>([]);
-  prelimsCompletedCount = computed(() => this.prelimsExams().filter(exam => !!exam.result).length);
-  mainsCompletedCount = computed(() => this.mainsExams().filter(exam => !!exam.result).length);
-  liveTests = signal<LiveTest[]>([]);
-  liveClock = signal(0);
   recentResults = signal<any[]>([]);
   activePlanIds = signal<string[]>([]);
   completedTestsCount = signal<number>(0);
@@ -65,7 +54,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
   plans = signal<Plan[]>([]);
   @ViewChild('performanceChart') performanceChart?: ElementRef<HTMLCanvasElement>;
   private performanceChartInstance: Chart | null = null;
-  private liveTimer: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit() {
     this.planService.getPlans().subscribe({ next: plans => this.plans.set(plans), error: error => console.error('Error loading plans:', error) });
@@ -78,16 +66,10 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (user?.role === 'student') {
       if (user.type === 'fresh') {
         this.loadFreshStudentData();
+      } else if (user.type === 'pre' || user.type === 'combo') {
+        this.loadPreStudentData();
       } else {
-        if (user.type === 'pre' || user.type === 'combo') {
-          this.loadPreStudentData();
-        }
-        if (user.type === 'mains' || user.type === 'combo') {
-          this.loadLiveTests();
-        }
-        if (user.type === 'mains') {
-          this.loading.set(false);
-        }
+        this.loading.set(false);
       }
     } else if (user?.role === 'admin') {
       this.loadAdminData();
@@ -96,10 +78,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   ngOnDestroy() {
     this.performanceChartInstance?.destroy();
-    if (this.liveTimer) {
-      clearInterval(this.liveTimer);
-      this.liveTimer = null;
-    }
   }
 
   ngAfterViewChecked() {
@@ -148,7 +126,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   loadPreStudentData() {
     this.loading.set(true);
-    this.loadSeriesExams('pre');
     
     this.testService.getUpcomingTests().subscribe({
       next: (tests) => {
@@ -174,69 +151,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.loading.set(false);
       }
     });
-  }
-
-  loadLiveTests() {
-    this.loadSeriesExams('mains');
-    this.liveTestService.getAllStudentTests().subscribe({
-      next: (response) => {
-        const tests = (response.data || []).filter((test) => test.status !== 'expired').slice(0, 3);
-        this.liveTests.set(tests);
-        if (!this.liveTimer) {
-          this.liveTimer = setInterval(() => this.liveClock.update((value) => value + 1), 1000);
-        }
-      },
-      error: (error) => console.error('Error loading live tests:', error)
-    });
-  }
-
-  private loadSeriesExams(kind: 'pre' | 'mains') {
-    const path = kind === 'pre' ? 'prelims-ts' : 'mains-ts';
-    this.http.get<any>(`${environment.apiUrl}/${path}/student/all`).subscribe({
-      next: response => {
-        const exams = (response.data || []).flatMap((series: any) =>
-          (series.testDates || [])
-            .filter((slot: any) => !!slot.exam)
-            .map((slot: any) => ({
-              ...slot,
-              seriesName: series.name,
-              examTitle: slot.exam.title || series.name,
-              startTime: slot.exam.startTime || slot.date,
-              duration: slot.exam.duration || slot.duration
-            }))
-        ).sort((first: any, second: any) => {
-          const firstTime = new Date(first.startTime).getTime();
-          const secondTime = new Date(second.startTime).getTime();
-          const now = Date.now();
-          const firstUpcoming = firstTime >= now;
-          const secondUpcoming = secondTime >= now;
-          if (firstUpcoming !== secondUpcoming) return firstUpcoming ? -1 : 1;
-          return firstUpcoming ? firstTime - secondTime : secondTime - firstTime;
-        });
-        (kind === 'pre' ? this.prelimsExams : this.mainsExams).set(exams);
-      },
-      error: error => console.error(`Error loading ${kind} series exams:`, error)
-    });
-  }
-
-  isLiveTestActive(test: LiveTest): boolean {
-    this.liveClock();
-    const now = Date.now();
-    const start = new Date(test.startDateTime).getTime();
-    const end = new Date(test.endDateTime).getTime();
-    return now >= start && now <= end && test.status !== 'submitted';
-  }
-
-  liveTestCountdown(test: LiveTest): string {
-    this.liveClock();
-    const now = Date.now();
-    const start = new Date(test.startDateTime).getTime();
-    const end = new Date(test.endDateTime).getTime();
-    const remaining = Math.max(0, (now < start ? start : end) - now) / 1000;
-    const hours = Math.floor(remaining / 3600);
-    const minutes = Math.floor((remaining % 3600) / 60);
-    const secs = Math.floor(remaining % 60);
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   }
 
   private renderPerformanceChart() {

@@ -2,18 +2,17 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { MatDialog } from '@angular/material/dialog';
 import { PaymentDialogComponent } from '../../../dashboard/payment-dialog/payment-dialog.component';
 import { ProgramFaqsComponent } from '../../program-faqs/program-faqs.component';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { environment } from '../../../../../environment/environment';
-import { LanguageService } from '../../../../shared/i18n/language.service';
 
 export interface Program {
   _id?: string;
   programName: string;
-  programNameHindi?: string; descriptionHindi?: string; durationHindi?: string; featuresHindi?: string[]; displayImageHindi?: string;
+  programNameHindi?: string; descriptionHindi?: string; durationHindi?: string; featuresHindi?: string[];
   programCategory: string;
   year: string;
   price: number;
@@ -51,7 +50,7 @@ export interface Batch {
         <div class="container">
           <div class="program-info" *ngIf="program">
             <div class="program-image">
-              <img [src]="programImage(program)" [alt]="program.programName" (error)="handleImageError($event)">
+              <img [src]="program.displayImage" [alt]="program.programName" (error)="handleImageError($event)">
             </div>
             <div class="program-details">
               <div class="program-category-badge">
@@ -62,28 +61,28 @@ export interface Batch {
                    [class.fa-pen-ruler]="program.programCategory === 'Optional Test Series'"
                    [class.fa-pencil-alt]="program.programCategory === 'Essay'">
                 </i>
-                {{ program.programCategory | t }}
+                {{ program.programCategory }}
               </div>
               <h1>{{ program.programName | t:program.programNameHindi }}</h1>
               <p class="description">{{ program.description | t:program.descriptionHindi }}</p>
               <div class="program-meta">
                 <span class="meta-item">
                   <i class="fas fa-calendar-alt"></i>
-                  {{ 'Year' | t }}: {{ program.year }}
+                  Year: {{ program.year }}
                 </span>
                 <span class="meta-item" *ngIf="program.duration">
                   <i class="fas fa-clock"></i>
-                  {{ 'Duration:' | t }} {{ formatDuration(program.duration, program.durationHindi) }}
+                  Duration: {{ program.duration | t:program.durationHindi }}
                 </span>
                 <span class="meta-item">
                   <i class="fas fa-tag"></i>
-                  {{ 'Price' | t }}:
+                  Price: 
                   <span *ngIf="program.discountedPrice">
-                    <span class="current-price">{{ formatCurrency(program.discountedPrice) }}</span>
-                    <span class="original-price">{{ formatCurrency(program.price) }}</span>
+                    <span class="current-price">₹{{ program.price | number }}</span>
+                    <span class="original-price">₹{{ program.discountedPrice | number }}</span>
                   </span>
                   <span *ngIf="!program.discountedPrice">
-                    {{ formatCurrency(program.price) }}
+                    ₹{{ program.price | number }}
                   </span>
                 </span>
               </div>
@@ -107,45 +106,20 @@ export interface Batch {
           <!-- Error Message -->
           <div *ngIf="errorMessage && !isLoading" class="error-container">
             <i class="fas fa-exclamation-triangle"></i>
-            <p>{{ errorMessage | t }}</p>
+            <p>{{ errorMessage }}</p>
           </div>
 
           <!-- No Batches -->
           <div *ngIf="!isLoading && !errorMessage && batches.length === 0" class="no-batches">
             <i class="fas fa-calendar-times"></i>
-            <h3>{{ 'No batches available' | t }}</h3>
+            <h3>No batches available</h3>
             <p>{{ 'Currently there are no active batches for this program. Please check back later.' | t }}</p>
             <button class="btn btn-primary" (click)="goBack()">
-              <i class="fas fa-arrow-left"></i> {{ 'Browse Other Programs' | t }}
+              <i class="fas fa-arrow-left"></i> Browse Other Programs
             </button>
           </div>
 
-          <p role="alert">{{ mentorshipError | t }}</p>
-          <section *ngIf="mentorships.length">
-            <h2>{{ 'Mentorship Program Details' | t }}</h2>
-            <label>{{ 'Medium' | t }}
-              <select [(ngModel)]="medium">
-                <option value="">{{ 'All mediums' | t }}</option>
-                <option value="english">{{ 'English' | t }}</option>
-                <option value="hindi">{{ 'Hindi' | t }}</option>
-              </select>
-            </label>
-            <div style="overflow-x:auto">
-              <table style="width:100%">
-                <thead><tr><th>{{ 'Program / Batch' | t }}</th><th>{{ 'Duration' | t }}</th><th>{{ 'Start date' | t }}</th><th>{{ 'Medium' | t }}</th><th>{{ 'Fee' | t }}</th><th>{{ 'Brochure' | t }}</th></tr></thead>
-                <tbody>
-                  <tr *ngFor="let m of filteredMentorships">
-                    <td>{{ m.name | t:m.nameHindi }}<p>{{ m.batchId?.batchName | t:m.batchId?.batchNameHindi }}</p></td>
-                    <td>{{ formatDuration(m.duration, m.durationHindi) }}</td>
-                    <td>{{ formatLocalizedDate(m.startDate) }}</td>
-                    <td>{{ formatMedium(m.medium) }}</td>
-                    <td>{{ formatCurrency(m.fee) }}</td>
-                    <td><a *ngIf="m.brochureEnglish" [href]="m.brochureEnglish" target="_blank" rel="noopener">{{ 'English' | t }}</a> <a *ngIf="m.brochureHindi" [href]="m.brochureHindi" target="_blank" rel="noopener">{{ 'Hindi' | t }}</a></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
+          <p role="alert">{{mentorshipError}}</p><section *ngIf="mentorships.length"><h2>Mentorship Program Details</h2><label>Medium<select [(ngModel)]="medium"><option value="">All mediums</option><option value="english">English</option><option value="hindi">Hindi</option></select></label><div style="overflow-x:auto"><table style="width:100%"><thead><tr><th>Program / Batch</th><th>Duration</th><th>Start date</th><th>Medium</th><th>Fee</th><th>Brochure</th></tr></thead><tbody><tr *ngFor="let m of filteredMentorships"><td>{{m.name | t:m.nameHindi}}<p>{{m.batchId?.batchName}}</p></td><td>{{m.duration | t:m.durationHindi}}</td><td>{{m.startDate | date}}</td><td>{{m.medium}}</td><td>{{m.fee | currency:'INR'}}</td><td><a *ngIf="m.brochureEnglish" [href]="m.brochureEnglish" target="_blank" rel="noopener">English</a> <a *ngIf="m.brochureHindi" [href]="m.brochureHindi" target="_blank" rel="noopener">Hindi</a></td></tr></tbody></table></div></section>
           <!-- Batches Grid -->
           <div *ngIf="!isLoading && !errorMessage && batches.length > 0" class="batches-grid">
             <div class="batch-card" *ngFor="let batch of batches">
@@ -159,7 +133,7 @@ export interface Batch {
                   <i class="fas fa-calendar-alt"></i>
                   <div>
                     <span class="label">{{ 'Start Date' | t }}</span>
-                    <strong>{{ formatLocalizedDate(batch.startDate) }}</strong>
+                    <strong>{{ batch.startDate | date:'fullDate' }}</strong>
                   </div>
                 </div>
                 <div class="date-arrow">
@@ -168,35 +142,35 @@ export interface Batch {
                 <div class="date-item">
                   <i class="fas fa-calendar-check"></i>
                   <div>
-                    <span class="label">{{ 'End Date' | t }}</span>
-                    <strong>{{ formatLocalizedDate(batch.endDate) }}</strong>
+                    <span class="label">End Date</span>
+                    <strong>{{ batch.endDate | date:'fullDate' }}</strong>
                   </div>
                 </div>
               </div>
               
               <div class="batch-duration">
                 <i class="fas fa-hourglass-half"></i>
-                <span>{{ 'Duration:' | t }} {{ formatDuration(batch.duration, batch.durationHindi) }}</span>
+                <span>Duration: {{ batch.duration | t:batch.durationHindi }}</span>
               </div>
               
               <div class="batch-brochures" *ngIf="batch.brochureHindi || batch.brochureEnglish">
                 <div class="brochure-title">
                   <i class="fas fa-file-pdf"></i>
-                  <span>{{ 'Program Brochures' | t }}</span>
+                  <span>Program Brochures</span>
                 </div>
                 <div class="brochure-links">
-                  <a *ngIf="brochureLink(batch, 'hi')" [href]="brochureLink(batch, 'hi')" target="_blank" class="brochure-link hindi hi">
+                  <a *ngIf="batch.brochureHindi" [href]="batch.brochureHindi" target="_blank" class="brochure-link hindi">
                     <i class="fas fa-language"></i>
-                    {{ 'Hindi Brochure' | t }}
+                    हिंदी ब्रोशर
                   </a>
-                  <a *ngIf="brochureLink(batch, 'en')" [href]="brochureLink(batch, 'en')" target="_blank" class="brochure-link english en">
+                  <a *ngIf="batch.brochureEnglish" [href]="batch.brochureEnglish" target="_blank" class="brochure-link english">
                     <i class="fas fa-file-alt"></i>{{ 'English Brochure' | t }}</a>
                 </div>
               </div>
               
               <button class="enroll-btn" (click)="enrollInBatch(batch)">
                 <i class="fas fa-arrow-right"></i>
-                {{ 'Register Now' | t }}
+                Register Now
               </button>
             </div>
           </div>
@@ -208,7 +182,6 @@ export interface Batch {
   styleUrls: ['./program-batches.component.css']
 })
 export class ProgramBatchesComponent implements OnInit {
-  private language = inject(LanguageService);
   programId: string = '';
   program: Program | null = null;
   batches: Batch[] = [];
@@ -279,54 +252,5 @@ export class ProgramBatchesComponent implements OnInit {
 
   handleImageError(event: any): void {
     event.target.src = 'assets/images/logo.png';
-  }
-
-  programImage(program: Program): string {
-    if (this.language.hindi && program.displayImageHindi) {
-      return program.displayImageHindi;
-    }
-    return program.displayImage;
-  }
-
-  brochureLink(batch: Batch, lang: 'en' | 'hi'): string {
-    const hindiSite = this.language.hindi;
-    if (hindiSite) {
-      return lang === 'hi' ? (batch.brochureHindi || batch.brochureEnglish || '') : '';
-    }
-    return lang === 'en' ? (batch.brochureEnglish || batch.brochureHindi || '') : '';
-  }
-
-  formatLocalizedDate(value: string | Date): string {
-    const date = new Date(value);
-    if (!Number.isFinite(date.getTime())) return '';
-    const locale = this.language.hindi ? 'hi-IN' : 'en-IN';
-    return new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(date);
-  }
-
-  formatDuration(english?: string, hindi?: string): string {
-    if (!this.language.hindi || !english) return english || '';
-    if (hindi) return hindi;
-    return english
-      .replace(/\bmonths\b/gi, 'महीने')
-      .replace(/\bmonth\b/gi, 'महीना')
-      .replace(/\byears\b/gi, 'वर्ष')
-      .replace(/\byear\b/gi, 'वर्ष')
-      .replace(/\bdays\b/gi, 'दिन')
-      .replace(/\bday\b/gi, 'दिन')
-      .replace(/\bweeks\b/gi, 'सप्ताह')
-      .replace(/\bweek\b/gi, 'सप्ताह');
-  }
-
-  formatCurrency(value: number): string {
-    const locale = this.language.hindi ? 'hi-IN' : 'en-IN';
-    return new Intl.NumberFormat(locale, { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value || 0);
-  }
-
-  formatMedium(value?: string): string {
-    const normalized = String(value || '').toLowerCase();
-    if (normalized === 'english') return this.language.text('English');
-    if (normalized === 'hindi') return this.language.text('Hindi');
-    if (normalized === 'english/hindi' || normalized === 'english / hindi') return this.language.text('English / Hindi');
-    return value || '';
   }
 }

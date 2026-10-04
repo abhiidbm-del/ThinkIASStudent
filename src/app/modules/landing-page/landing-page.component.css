@@ -20,9 +20,9 @@ body {
 
 /* Language Display Logic */
 .hi { display: none; }
-.en { display: inline-block; }
+.en { display: block; }
 
-body.hindi .hi { display: inline-block; }
+body.hindi .hi { display: block; }
 body.hindi .en { display: none; }
 
 /* Header styles */

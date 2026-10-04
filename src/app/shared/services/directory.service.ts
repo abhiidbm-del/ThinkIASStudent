@@ -33,8 +33,8 @@ export class DirectoryService {
   }
 
   // Get directory tree (accessible to both admin and students)
-  getDirectoryTree(parentId?: string | null, section: 'pre' | 'mains' = 'pre'): Observable<DirectoryTreeResponse> {
-    let params = new HttpParams().set('section', section);
+  getDirectoryTree(parentId?: string | null): Observable<DirectoryTreeResponse> {
+    let params = new HttpParams();
     if (parentId) {
       params = params.set('parentId', parentId);
     }

@@ -88,18 +88,13 @@ export class RegisterComponent {
 
   // Send OTP
   sendOTP() {
-    const fullNameControl = this.registerForm.get('fullName');
-    const emailControl = this.registerForm.get('email');
-
-    if (fullNameControl?.invalid || emailControl?.invalid) {
-      fullNameControl?.markAsTouched();
-      emailControl?.markAsTouched();
-      this.snackBar.open('Enter your full name and a valid email first', 'Close', { duration: 3000 });
+    if (this.registerForm.get('email')?.invalid) {
+      this.snackBar.open('Please enter a valid email', 'Close', { duration: 3000 });
       return;
     }
 
     this.sendingOTP.set(true);
-    this.authService.sendOTP(emailControl?.value).subscribe({
+    this.authService.sendOTP(this.registerForm.get('email')?.value).subscribe({
       next: (response) => {
         this.sendingOTP.set(false);
         this.otpSent.set(true);

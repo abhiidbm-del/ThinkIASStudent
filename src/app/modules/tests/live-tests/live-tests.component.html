@@ -18,44 +18,9 @@
   </div>
 
   <div class="test-filters">
-    <label class="search-field">
-      <span>Search</span>
-      <div class="input-wrap">
-        <input aria-label="Search tests" placeholder="Search by title, description..." [(ngModel)]="search">
-      </div>
-    </label>
-
-    <label>
-      <span>Status</span>
-      <select aria-label="Filter by test status" [(ngModel)]="statusFilter">
-        <option value="all">All</option>
-        <option value="active">Active</option>
-        <option value="upcoming">Upcoming</option>
-        <option value="closed">Closed</option>
-        <option value="submitted">Submitted</option>
-        <option value="not-started">Not started</option>
-      </select>
-    </label>
-
-    <label>
-      <span>From</span>
-      <input type="date" aria-label="Filter from date" [(ngModel)]="dateFrom">
-    </label>
-
-    <label>
-      <span>To</span>
-      <input type="date" aria-label="Filter to date" [(ngModel)]="dateTo">
-    </label>
-
-    <label>
-      <span>Sort by</span>
-      <select aria-label="Sort tests" [(ngModel)]="sortOrder">
-        <option value="newest">Newest first</option>
-        <option value="oldest">Oldest first</option>
-      </select>
-    </label>
-
-    <button type="button" class="clear-filters-btn" (click)="clearFilters()">Clear filters</button>
+    <label class="search-field"><span>Search tests</span><div class="input-wrap"><input aria-label="Search tests" placeholder="Find a test" [(ngModel)]="search"></div></label>
+    <label><span>Progress</span><select aria-label="Test progress" [(ngModel)]="testFilter"><option value="all">All tests</option><option value="completed">Completed</option><option value="not-started">Not started</option></select></label>
+    <label><span>Sort by</span><select aria-label="Sort tests" [(ngModel)]="sortOrder"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label>
     <strong>{{ filteredTests.length }} {{ filteredTests.length === 1 ? 'test' : 'tests' }}</strong>
   </div>
   <p *ngIf="!loading() && tests().length && !filteredTests.length">No tests match your filters.</p>

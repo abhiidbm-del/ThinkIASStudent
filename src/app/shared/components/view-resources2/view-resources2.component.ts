@@ -42,8 +42,6 @@ export class ViewResources2Component implements OnInit {
   categoryMap: { [key: string]: string } = {
     'prelims': 'gs1-analysis',
     'mains': 'optional-subjects',
-    'prelims-paper-1': 'prelims-paper-1',
-    'prelims-paper-2': 'prelims-paper-2',
     'gs1': 'gs1-analysis',
     'gs2': 'gs2-analysis',
     'gs3': 'gs3-analysis',
@@ -101,10 +99,6 @@ export class ViewResources2Component implements OnInit {
     }
   }
 
-  siteLang(): 'en' | 'hi' {
-    return document.body.classList.contains('hindi') ? 'hi' : 'en';
-  }
-
   getBaseApiUrl(): string {
     return this.resourceType === 2 ? this.baseVideoApiUrl : this.baseTopicwiseApiUrl;
   }
@@ -141,9 +135,7 @@ export class ViewResources2Component implements OnInit {
     let url = `${baseUrl}/public/tree/${category}`;
     
     if (parentId) {
-      url += `?parentId=${parentId}&lang=${this.siteLang()}`;
-    } else {
-      url += `?lang=${this.siteLang()}`;
+      url += `?parentId=${parentId}`;
     }
     
     return this.http.get(url).pipe(
@@ -207,8 +199,6 @@ export class ViewResources2Component implements OnInit {
       'essay-analysis': 'Essay Paper Analysis',
       'optional-subjects': 'Optional Subjects',
       'prelims': 'Prelims Analysis',
-      'prelims-paper-1': 'Prelims Paper-I',
-      'prelims-paper-2': 'Prelims Paper-II',
       'mains': 'Mains Analysis',
       
       // Video Lecture names

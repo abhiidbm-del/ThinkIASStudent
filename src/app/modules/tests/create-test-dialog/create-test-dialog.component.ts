@@ -109,9 +109,9 @@ export class CreateTestDialogComponent implements OnInit {
   }
 
   setDefaultDateTime() {
-    const startTime = new Date();
-    startTime.setSeconds(0, 0);
-    startTime.setMinutes(startTime.getMinutes() + 1);
+    const now = new Date();
+    const startTime = new Date(now.getTime() + 60 * 60 * 1000);
+    
     const formattedDateTime = this.formatDateTimeForInput(startTime);
     
     this.testForm.patchValue({
@@ -129,15 +129,47 @@ export class CreateTestDialogComponent implements OnInit {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
+  getMinDateTime(): string {
+    return this.formatDateTimeForInput(new Date());
+  }
+
   private padZero(num: number): string {
     return num.toString().padStart(2, '0');
+  }
+
+  futureDateValidator(control: FormControl): { [key: string]: any } | null {
+    if (!control.value) {
+      return null;
+    }
+    
+    const selectedTime = new Date(control.value);
+    const now = new Date();
+    
+    const bufferTime = new Date(now.getTime() + 5 * 60 * 1000);
+    
+    if (selectedTime < bufferTime) {
+      return { 'pastDate': 'Start time must be at least 5 minutes from now' };
+    }
+    
+    return null;
+  }
+
+  onDateTimeChange() {
+    const startTimeControl = this.testForm.get('startTime');
+    if (startTimeControl?.errors?.['pastDate']) {
+      this.snackBar.open('Start time must be at least 5 minutes from now', 'Close', { duration: 3000 });
+      const minTime = new Date(new Date().getTime() + 5 * 60 * 1000);
+      this.testForm.patchValue({
+        startTime: this.formatDateTimeForInput(minTime)
+      });
+    }
   }
 
   createTestForm(): FormGroup {
     return this.fb.group({
       title: ['', Validators.required],
       description: [''],
-      startTime: ['', [Validators.required]],
+      startTime: ['', [Validators.required, this.futureDateValidator.bind(this)]],
       duration: ['', [Validators.required, Validators.min(1)]],
       marksPerQuestion: [1, [Validators.required, Validators.min(1)]],
       negativeMarks: [0, [Validators.min(0)]],
