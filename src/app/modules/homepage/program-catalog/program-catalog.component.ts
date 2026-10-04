@@ -21,7 +21,9 @@ import {TranslatePipe} from '../../../shared/i18n/translate.pipe';
 			</header>
 
 			<section class="catalog-toolbar" aria-label="Program filters">
-				<label><span>Category</span><select [(ngModel)]="category"><option value="">All programs</option><option *ngFor="let c of categories" [value]="c">{{c}}</option></select></label>
+				<label><span>Examination</span><select [(ngModel)]="examination"><option value="">All examinations</option><option *ngFor="let exam of examinations" [value]="exam">{{exam}}</option></select></label>
+				<label><span>Program</span><select [(ngModel)]="stage"><option value="">All programs</option><option *ngFor="let stageName of stages" [value]="stageName">{{stageName}}</option></select></label>
+				<label><span>Plan</span><select [(ngModel)]="category"><option value="">All plans</option><option *ngFor="let c of categories" [value]="c">{{c}}</option></select></label>
 				<label><span>Year</span><select [(ngModel)]="year"><option value="">All years</option><option *ngFor="let y of years" [value]="y">{{y}}</option></select></label>
 				<label class="search-field"><span>Search programs</span><i class="fas fa-search"></i><input [(ngModel)]="search" placeholder="Find a program"></label>
 				<strong class="result-count">{{ visible.length }} {{ visible.length === 1 ? 'program' : 'programs' }}</strong>
@@ -52,10 +54,12 @@ import {TranslatePipe} from '../../../shared/i18n/translate.pipe';
 })
 export class ProgramCatalogComponent implements OnInit {
 	private http=inject(HttpClient); private route=inject(ActivatedRoute);
-	programs:any[]=[]; category=''; year=''; search=''; error=''; loading=true;
-	categories=['Mentorship Course','Optional Mentorship Course','Test Series','Optional Test Series','Essay','Prelims Program','Mains Program','Interview Program'];
+	programs:any[]=[]; examination=''; stage=''; category=''; year=''; search=''; error=''; loading=true;
+	examinations=['UPSC','UPPSC','APSC','EPFO'];
+	stages=['Prelims','Mains','Interview','Combo I','Combo II'];
+	categories=['Mentorship Course','Optional Mentorship Course','Test Series','Optional Test Series','Essay','Qualifying Paper','Prelims Program','Mains Program','Interview Program'];
 	get years(){return [...new Set(this.programs.map(p=>p.year))].sort().reverse();}
-	get visible(){const query=this.search.toLowerCase();return this.programs.filter(p=>(!this.category||p.programCategory===this.category)&&(!this.year||p.year===this.year)&&[p.programName,p.programNameHindi,p.description].join(' ').toLowerCase().includes(query));}
+	get visible(){const query=this.search.toLowerCase();return this.programs.filter(p=>(!this.examination||(p.examination||'UPSC')===this.examination)&&(!this.stage||p.programStage===this.stage)&&(!this.category||p.programCategory===this.category)&&(!this.year||p.year===this.year)&&[p.programName,p.programNameHindi,p.description].join(' ').toLowerCase().includes(query));}
 	featureText(feature:unknown):string{return String(feature ?? '');}
 	featureHindi(program:any,index:number):string|undefined{return program?.featuresHindi?.[index] as string|undefined;}
 	ngOnInit(){this.route.queryParamMap.subscribe(q=>this.category=q.get('category')||'');this.http.get<any>(environment.apiUrl+'/programs?activeOnly=true').subscribe({next:r=>{this.programs=Array.isArray(r)?r:(r?.data||[]);this.loading=false;},error:()=>{this.error='Unable to load programs.';this.loading=false;}});}

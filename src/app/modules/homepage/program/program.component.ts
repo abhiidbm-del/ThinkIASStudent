@@ -11,6 +11,9 @@ export interface Program {
   programName: string;
   programNameHindi?: string; descriptionHindi?: string; durationHindi?: string; featuresHindi?: string[]; displayImageHindi?: string;
   programCategory: string;
+  examination?: string;
+  programStage?: string;
+  paperVariant?: string;
   year: string;
   price: number;
   displayImage: string;
@@ -32,10 +35,14 @@ export interface Program {
 export class ProgramComponent implements OnInit {
   allPrograms: Program[] = [];
   filteredPrograms: Program[] = [];
-  categories: string[] = ['All', 'Mentorship Course', 'Optional Mentorship Course', 'Test Series', 'Optional Test Series', 'Essay', 'Prelims Program', 'Mains Program', 'Interview Program'];
+  categories: string[] = ['All', 'Mentorship Course', 'Optional Mentorship Course', 'Test Series', 'Optional Test Series', 'Essay', 'Qualifying Paper', 'Prelims Program', 'Mains Program', 'Interview Program'];
+  examinations: string[] = ['All', 'UPSC', 'UPPSC', 'APSC', 'EPFO'];
+  stages: string[] = ['All', 'Prelims', 'Mains', 'Interview', 'Combo I', 'Combo II'];
   years: string[] = [];
   
-  // Filter selections
+  // Filter selections: examination, then program, then plan, then year
+  selectedExamination: string = 'All';
+  selectedStage: string = 'All';
   selectedCategory: string = 'All';
   selectedYear: string = 'All';
   
@@ -124,9 +131,12 @@ export class ProgramComponent implements OnInit {
   // Apply category and year filters
   applyFilters(): void {
     this.filteredPrograms = this.allPrograms.filter(program => {
+      const examination = program.examination || 'UPSC';
+      const examinationMatch = this.selectedExamination === 'All' || examination === this.selectedExamination;
+      const stageMatch = this.selectedStage === 'All' || program.programStage === this.selectedStage;
       const categoryMatch = this.selectedCategory === 'All' || program.programCategory === this.selectedCategory;
       const yearMatch = this.selectedYear === 'All' || program.year === this.selectedYear;
-      return categoryMatch && yearMatch;
+      return examinationMatch && stageMatch && categoryMatch && yearMatch;
     });
   }
 
@@ -142,9 +152,21 @@ export class ProgramComponent implements OnInit {
 
   // Reset all filters
   resetFilters(): void {
+    this.selectedExamination = 'All';
+    this.selectedStage = 'All';
     this.selectedCategory = 'All';
     this.selectedYear = 'All';
     this.applyFilters();
+  }
+
+  getExaminationCount(examination: string): number {
+    if (examination === 'All') return this.allPrograms.length;
+    return this.allPrograms.filter(program => (program.examination || 'UPSC') === examination).length;
+  }
+
+  getStageCount(stage: string): number {
+    if (stage === 'All') return this.allPrograms.length;
+    return this.allPrograms.filter(program => program.programStage === stage).length;
   }
 
   // Get count for category
