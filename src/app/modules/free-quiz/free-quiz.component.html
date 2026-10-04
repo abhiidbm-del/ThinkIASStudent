@@ -3,18 +3,8 @@
 <div class="free-quiz-container">
     <!-- Header (hidden once the exam is in progress) -->
     <div class="quiz-header" *ngIf="!currentQuiz() || quizCompleted()">
-        <div class="quiz-hero-inner">
-            <div class="quiz-hero-icon" aria-hidden="true"><mat-icon>school</mat-icon></div>
-            <div class="quiz-hero-copy">
-                <span class="quiz-eyebrow"><mat-icon>auto_awesome</mat-icon> Practice library</span>
-                <h1>Free Quizzes</h1>
-                <p>Pick a quiz, challenge yourself, and track your progress.</p>
-            </div>
-            <div class="quiz-hero-count" *ngIf="!loading()">
-                <strong>{{ quizzes().length }}</strong>
-                <span>{{ quizzes().length === 1 ? 'quiz available' : 'quizzes available' }}</span>
-            </div>
-        </div>
+        <h1>Quiz</h1>
+        <p>Test your knowledge with our free quizzes!</p>
     </div>
 
     <!-- User Info Form (Shows before quiz starts) -->
@@ -93,37 +83,32 @@
         <!-- Quizzes Grid -->
         <div *ngIf="!loading() && quizzes().length > 0" class="quizzes-grid">
             <mat-card *ngFor="let quiz of quizzes()" class="quiz-card">
-                <div class="quiz-card-heading">
-                    <div class="quiz-card-icon" aria-hidden="true"><mat-icon>quiz</mat-icon></div>
-                    <div class="quiz-card-title">
-                        <span class="quiz-card-kicker">Knowledge check</span>
-                        <h2>{{ quiz.title }}</h2>
-                    </div>
-                    <span class="quiz-free-label"><mat-icon>check_circle</mat-icon> Free</span>
-                </div>
+                <mat-card-header>
+                    <mat-card-title>{{ quiz.title }}</mat-card-title>
+                    <mat-card-subtitle>
+                        <div class="quiz-info">
+                            <span><mat-icon>help_outline</mat-icon> {{ quiz.questionUids?.length || 0 }}
+                                Questions</span>
+                            <span><mat-icon>schedule</mat-icon> Take anytime</span>
+                        </div>
+                    </mat-card-subtitle>
+                </mat-card-header>
 
                 <mat-card-content>
-                    <p class="quiz-description">{{ quiz.description || 'Test your knowledge with this quiz!' }}</p>
-                    <div class="quiz-info">
-                        <div class="quiz-info-item">
-                            <mat-icon aria-hidden="true">help_outline</mat-icon>
-                            <span><strong>{{ quiz.questionUids?.length || 0 }}</strong><small>Questions</small></span>
-                        </div>
-                        <div class="quiz-info-item">
-                            <mat-icon aria-hidden="true">schedule</mat-icon>
-                            <span><strong>Anytime</strong><small>Self-paced</small></span>
-                        </div>
+                    <p>{{ quiz.description || 'Test your knowledge with this quiz!' }}</p>
+
+                    <div class="quiz-stats">
+                        <button mat-stroked-button (click)="viewLeaderboard(quiz._id)">
+                            <mat-icon>leaderboard</mat-icon>
+                            View Leaderboard
+                        </button>
                     </div>
                 </mat-card-content>
 
                 <mat-card-actions>
-                    <button mat-stroked-button (click)="viewLeaderboard(quiz._id)" class="leaderboard-btn">
-                        <mat-icon>leaderboard</mat-icon>
-                        Leaderboard
-                    </button>
                     <button mat-raised-button color="primary" (click)="startQuiz(quiz)" class="start-quiz-btn">
                         <mat-icon>play_arrow</mat-icon>
-                        Start quiz
+                        Start Quiz
                     </button>
                 </mat-card-actions>
             </mat-card>

@@ -161,6 +161,6 @@ export class DemoTestService {
 
   // In your demo-test.service.ts
 checkTestCompleted(testId: string): Observable<{completed: boolean}> {
-  return this.http.get<{completed: boolean}>(`${this.apiUrl}/${testId}/completed`);
+  return this.http.get<{completed: boolean}>(`${this.apiUrl}/demo-tests/${testId}/completed`);
 }
 }

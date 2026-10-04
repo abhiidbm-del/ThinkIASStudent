@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, HostListener, OnDestroy, inject, Inject, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, Component, OnInit, HostListener, OnDestroy, inject, Inject, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import * as AOS from 'aos';
 import { StudymaterialSliderComponent } from './studymaterial-slider/studymaterial-slider.component';
 import { ReviewSliderComponent } from './review-slider/review-slider.component';
@@ -20,8 +20,6 @@ import { HeaderComponent } from './header/header.component';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ProgramComponent } from './program/program.component';
 import { PlanSliderComponent } from './plan-slider/plan-slider.component';
-import Swiper from 'swiper';
-import { Autoplay, Navigation } from 'swiper/modules';
 
 @Component({
   selector: 'app-homepage',
@@ -71,21 +69,12 @@ export class HomepageComponent implements OnInit, AfterViewInit, OnDestroy {
 
       videos: any[] = [];
         safeVideoUrls: Map<string, SafeResourceUrl> = new Map(); // Cache for safe URLs
-      private videoSwiper?: Swiper;
-      private videoSlider?: ElementRef<HTMLElement>;
-      private viewReady = false;
   
   constructor(private datePipe: DatePipe,
      private dialog: MatDialog,
      private userService: UserService,
         private sanitizer: DomSanitizer) {}
     showSplash = true;
-
-      @ViewChild('videoSlider')
-      set videoSliderElement(element: ElementRef<HTMLElement> | undefined) {
-        this.videoSlider = element;
-        if (element) this.initializeVideoSlider();
-      }
     
   ngOnInit(): void {
     try {
@@ -116,14 +105,10 @@ export class HomepageComponent implements OnInit, AfterViewInit, OnDestroy {
       clearInterval(this.timerInterval);
     }
 
-    this.videoSwiper?.destroy();
-
         this.closeAnnouncements();
   }
   
   ngAfterViewInit(): void {
-    this.viewReady = true;
-    this.initializeVideoSlider();
     try { (AOS as { default?: { refresh: Function }; refresh?: Function }).default?.refresh?.() || (AOS as { refresh?: Function }).refresh?.(); } catch { /* ignore */ }
     this.updateLanguageButtons();
   }
@@ -317,35 +302,6 @@ loadVideos() {
   // Get cached safe URL - much more efficient
   getSafeUrl(videoId: string): SafeResourceUrl | null {
     return this.safeVideoUrls.get(videoId) || null;
-  }
-
-  private initializeVideoSlider(): void {
-    if (!this.viewReady || !this.videoSlider || this.videos.length <= 3 || this.videoSwiper) return;
-
-    requestAnimationFrame(() => {
-      const element = this.videoSlider?.nativeElement;
-      if (!element || this.videoSwiper) return;
-
-      this.videoSwiper = new Swiper(element, {
-        modules: [Autoplay, Navigation],
-        spaceBetween: 24,
-        slidesPerView: 1,
-        slidesPerGroup: 1,
-        autoplay: {
-          delay: 3500,
-          disableOnInteraction: true,
-          pauseOnMouseEnter: true
-        },
-        navigation: {
-          nextEl: element.querySelector<HTMLElement>('.video-next'),
-          prevEl: element.querySelector<HTMLElement>('.video-prev')
-        },
-        breakpoints: {
-          576: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 20 },
-          992: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 24 }
-        }
-      });
-    });
   }
 
   

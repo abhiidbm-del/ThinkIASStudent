@@ -24,7 +24,7 @@ export interface LiveTest {
   isActive: boolean;
   createdAt?: Date;
   updatedAt?: Date;
-  status?: 'available' | 'upcoming' | 'expired' | 'in-progress' | 'submitted';
+  status?: 'available' | 'upcoming' | 'expired' | 'in-progress';
 }
 
 export interface Question {

@@ -43,7 +43,7 @@
             </div>
             <div class="col-lg-6 col-md-12 col-sm-12">
                 <div class="main_heading ps-5">
-                    <p class="about-kicker"><span class="en">About Us</span><span class="hi">हमारे बारे में</span></p>
+                    <p><span class="en">About Us</span><span class="hi">हमारे बारे में</span></p>
                     <h4 class="sub_heading mb-2">
                         <span class="en">Welcome to <span class="main_color">ThinkCivil IAS</span></span>
                         <span class="hi"><span class="main_color">थिंकसिविल आईएएस</span> में आपका स्वागत है</span>
@@ -133,7 +133,7 @@ class="live-videos-section pt-5 pb-5"
     <!-- Videos -->
     <div class="row">
       <div
-        class="col-lg-4 col-md-4 mb-4"
+        class="col-lg-6 col-md-12 mb-4"
         *ngFor="let video of videos"
       >
         <div class="video-wrapper">
@@ -197,10 +197,10 @@ class="live-videos-section pt-5 pb-5"
                         <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne"
                             data-bs-parent="#accordionExample">
                             <div class="accordion-body">
-                                <p (click)="openView('prelims')" class="en">Prelims Examination Syllabus</p>
-                                <p (click)="openView('prelims')" class="hi">प्रारंभिक परीक्षा पाठ्यक्रम</p>
-                                <p (click)="openView('mains')" class="en">Mains Examination Syllabus</p>
-                                <p (click)="openView('mains')" class="hi">मुख्य परीक्षा पाठ्यक्रम</p>
+                                <p (click)="openView('prelims')" class="en">Prelims Syllabus</p>
+                                <p (click)="openView('prelims')" class="hi">प्रारंभिक पाठ्यक्रम</p>
+                                <p (click)="openView('mains')" class="en">Mains Syllabus</p>
+                                <p (click)="openView('mains')" class="hi">मुख्य पाठ्यक्रम</p>
                             </div>
                         </div>
                     </div>
@@ -215,50 +215,36 @@ class="live-videos-section pt-5 pb-5"
                         <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
                             data-bs-parent="#accordionExample">
                             <div class="accordion-body">
-                                <details open>
-                                    <summary>
-                                        <span class="en">Prelims Examination Syllabus</span>
-                                        <span class="hi">प्रारंभिक परीक्षा पाठ्यक्रम</span>
-                                    </summary>
-                                    <p (click)="openViewR('prelims-paper-1',1)">
-                                        <span class="en">Paper-I</span>
-                                        <span class="hi">पेपर-I</span>
-                                    </p>
-                                    <p (click)="openViewR('prelims-paper-2',1)">
-                                        <span class="en">Paper-II</span>
-                                        <span class="hi">पेपर-II</span>
-                                    </p>
-                                </details>
-                                <details>
-                                    <summary>
-                                        <span class="en">Mains Examination Syllabus</span>
-                                        <span class="hi">मुख्य परीक्षा पाठ्यक्रम</span>
-                                    </summary>
-                                    <p (click)="openViewR('gs1-analysis',1)">
-                                        <span class="en">GS Paper 1</span>
-                                        <span class="hi">सामान्य अध्ययन पेपर 1</span>
-                                    </p>
-                                    <p (click)="openViewR('gs2-analysis',1)">
-                                        <span class="en">GS Paper 2</span>
-                                        <span class="hi">सामान्य अध्ययन पेपर 2</span>
-                                    </p>
-                                    <p (click)="openViewR('gs3-analysis',1)">
-                                        <span class="en">GS Paper 3</span>
-                                        <span class="hi">सामान्य अध्ययन पेपर 3</span>
-                                    </p>
-                                    <p (click)="openViewR('gs4-analysis',1)">
-                                        <span class="en">GS Paper 4</span>
-                                        <span class="hi">सामान्य अध्ययन पेपर 4</span>
-                                    </p>
-                                    <p (click)="openViewR('essay-analysis',1)">
-                                        <span class="en">Essay</span>
-                                        <span class="hi">निबंध</span>
-                                    </p>
-                                    <p (click)="openViewR('optional-subjects',1)">
-                                        <span class="en">Optional</span>
-                                        <span class="hi">वैकल्पिक विषय</span>
-                                    </p>
-                                </details>
+                                <p (click)="openViewR('gs1-analysis',1)">
+                                    <span class="en">GS Paper 1 Analysis</span>
+                                    <span class="hi">सामान्य अध्धयन पेपर 1 विश्लेषण</span>
+                                </p>
+
+                                <p (click)="openViewR('gs2-analysis',1)">
+                                    <span class="en">GS Paper 2 Analysis</span>
+                                    <span class="hi">सामान्य अध्धयन पेपर 2 विश्लेषण</span>
+                                </p>
+
+                                <p (click)="openViewR('gs3-analysis',1)">
+                                    <span class="en">GS Paper 3 Analysis</span>
+                                    <span class="hi">सामान्य अध्धयन पेपर 3 विश्लेषण</span>
+                                </p>
+
+                                <p (click)="openViewR('gs4-analysis',1)">
+                                    <span class="en">GS Paper 4 Analysis</span>
+                                    <span class="hi">सामान्य अध्धयन पेपर 4 विश्लेषण</span>
+                                </p>
+
+                                <p (click)="openViewR('essay-analysis',1)">
+                                    <span class="en">Essay Paper Analysis</span>
+                                    <span class="hi">निबंध पेपर विश्लेषण</span>
+                                </p>
+
+                                <p (click)="openViewR('optional-subjects',1)">
+                                    <span class="en">Optional Subjects</span>
+                                    <span class="hi">वैकल्पिक विषय</span>
+                                </p>
+
                             </div>
                         </div>
                     </div>
@@ -273,57 +259,9 @@ class="live-videos-section pt-5 pb-5"
                         <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree"
                             data-bs-parent="#accordionExample">
                             <div class="accordion-body">
-                                <details>
-                                    <summary>
-                                        <span class="en">Prelims / Preliminary Exam</span>
-                                        <span class="hi">प्रारंभिक परीक्षा</span>
-                                    </summary>
-                                    <p (click)="openViewR('strategy-sessions',2)">
-                                        <span class="en">Strategy Sessions</span>
-                                        <span class="hi">रणनीति सत्र</span>
-                                    </p>
-                                    <p (click)="openViewR('current-affairs',2)">
-                                        <span class="en">Current Affairs</span>
-                                        <span class="hi">करेंट अफेयर्स</span>
-                                    </p>
-                                </details>
-                                <details>
-                                    <summary>
-                                        <span class="en">Mains / Main Exam</span>
-                                        <span class="hi">मुख्य परीक्षा</span>
-                                    </summary>
-                                    <p (click)="openViewR('gs1-videos',2)">
-                                        <span class="en">GS Paper 1</span>
-                                        <span class="hi">सामान्य अध्ययन पेपर 1</span>
-                                    </p>
-                                    <p (click)="openViewR('gs2-videos',2)">
-                                        <span class="en">GS Paper 2</span>
-                                        <span class="hi">सामान्य अध्ययन पेपर 2</span>
-                                    </p>
-                                    <p (click)="openViewR('gs3-videos',2)">
-                                        <span class="en">GS Paper 3</span>
-                                        <span class="hi">सामान्य अध्ययन पेपर 3</span>
-                                    </p>
-                                    <p (click)="openViewR('gs4-videos',2)">
-                                        <span class="en">GS Paper 4</span>
-                                        <span class="hi">सामान्य अध्ययन पेपर 4</span>
-                                    </p>
-                                    <p (click)="openViewR('essay-videos',2)">
-                                        <span class="en">Essay Writing</span>
-                                        <span class="hi">निबंध लेखन</span>
-                                    </p>
-                                </details>
-                                <details>
-                                    <summary>
-                                        <span class="en">Interviews</span>
-                                        <span class="hi">साक्षात्कार</span>
-                                    </summary>
-                                    <p (click)="openViewR('mock-interviews',2)">
-                                        <span class="en">Mock Interviews</span>
-                                        <span class="hi">मॉक इंटरव्यू</span>
-                                    </p>
-                                </details>
-                            </div>
+                                <details><summary>Prelims / प्रारंभिक परीक्षा</summary>
+                                    <p (click)="openViewR('strategy-sessions',2)">Strategy Sessions</p>
+                                    <p (click)="openViewR('current-affairs',2)">Current Affairs</p></details><details><summary>Mains / मुख्य परीक्षा</summary><p (click)="openViewR('gs1-videos',2)">GS Paper 1</p><p (click)="openViewR('gs2-videos',2)">GS Paper 2</p><p (click)="openViewR('gs3-videos',2)">GS Paper 3</p><p (click)="openViewR('gs4-videos',2)">GS Paper 4</p><p (click)="openViewR('essay-videos',2)">Essay Writing</p></details><details><summary>Interviews / साक्षात्कार</summary><p (click)="openViewR('mock-interviews',2)">Mock Interviews</p></details></div>
                         </div>
                     </div>
                 </div>

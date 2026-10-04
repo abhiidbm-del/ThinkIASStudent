@@ -48,28 +48,6 @@
 .stats-grid { gap: 18px; margin-bottom: 28px; }
 .stats-grid mat-card, .results-grid mat-card, .plan-card { border: 1px solid #e0e8ee; border-radius: 14px; box-shadow: 0 7px 22px rgba(16,42,67,.06); }
 .stats-grid mat-card:hover, .results-grid mat-card:hover, .plan-card:hover { border-color: #9bd2b3; box-shadow: 0 13px 28px rgba(25,135,84,.12); }
-.student-exam-card { min-width: 0; }
-.student-exam-card mat-card-content { padding: 20px; }
-.student-exam-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.student-exam-heading h2 { margin: 4px 0 0; color: #102a43; font-size: 20px; }
-.student-exam-heading > mat-icon { width: 38px; height: 38px; padding: 8px; border-radius: 10px; color: #197c6b; background: #e8f6f1; }
-.student-exam-heading .mains-kicker { color: #4861b2; }
-.student-exam-heading:has(.mains-kicker) > mat-icon { color: #4861b2; background: #eef0ff; }
-.student-exam-summary { margin: 8px 0 14px; color: #64748b; font-size: 12px; }
-.dashboard-exam-list { display: grid; gap: 8px; }
-.dashboard-exam-row { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px; border: 1px solid #e5edf1; border-radius: 10px; background: #f8fbfa; }
-.exam-type-icon { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border-radius: 9px; }
-.exam-type-icon mat-icon { width: 19px; height: 19px; font-size: 19px; }
-.dashboard-exam-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 4px; }
-.dashboard-exam-copy strong { overflow: hidden; color: #193d4c; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-.dashboard-exam-copy small,.dashboard-exam-result small { color: #70818a; font-size: 10px; }
-.dashboard-exam-result { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-end; gap: 3px; }
-.dashboard-exam-result strong { color: #197454; font-size: 12px; }
-.dashboard-exam-state { flex: 0 0 auto; color: #a56d24; font-size: 10px; font-weight: 700; }
-.no-dashboard-exams { margin: 0; padding: 16px 12px; border: 1px dashed #d7e2e6; border-radius: 9px; color: #74848d; font-size: 12px; text-align: center; }
-.student-exam-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-.student-exam-actions a { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; font-size: 11px; }
-.student-exam-actions mat-icon { width: 16px; height: 16px; font-size: 16px; }
 
 .upcoming-tests-panel, .recent-results, .plans-section, .testimonials-section { margin-top: 30px; }
 .study-shortcuts { margin-top: 30px; }

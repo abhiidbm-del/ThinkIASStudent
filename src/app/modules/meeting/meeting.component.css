@@ -11,9 +11,6 @@
 }
 
 /* Header Styles */
-.meeting-container.student.mains-mentorship .meeting-header {
-  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
-}
 .meeting-header {
   background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
   color: white;

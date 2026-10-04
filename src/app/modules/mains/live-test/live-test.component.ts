@@ -220,67 +220,38 @@ export interface TestParticipation {
               <p>{{ isHindiMode ? 'आपने अभी तक किसी लाइव टेस्ट में भाग नहीं लिया है' : "You haven't participated in any live test yet" }}</p>
               <button class="btn-primary" (click)="switchToAvailableTab()">{{ isHindiMode ? 'उपलब्ध टेस्ट देखें' : 'Browse Tests' }}</button>
             </div>
-            <div *ngIf="!isLoadingParticipation && myParticipations().length > 0" class="participation-panel">
-              <div class="participation-panel-header">
-                <div>
-                  <span class="panel-kicker">{{ isHindiMode ? 'सबमिशन सूची' : 'Submission List' }}</span>
-                  <h3>{{ isHindiMode ? 'प्रस्तुत किए गए टेस्ट' : 'Submitted Tests' }}</h3>
-                </div>
-                <span class="participation-count">{{ myParticipations().length }} {{ myParticipations().length === 1 ? (isHindiMode ? 'टेस्ट' : 'test') : (isHindiMode ? 'टेस्ट' : 'tests') }}</span>
-              </div>
-
-              <div class="table-container">
-                <table class="participation-table">
-                  <thead>
-                    <tr>
-                      <th>{{ isHindiMode ? 'टेस्ट का नाम' : 'Test Name' }}</th>
-                      <th>{{ isHindiMode ? 'तिथि' : 'Date' }}</th>
-                      <th>{{ isHindiMode ? 'स्थिति' : 'Status' }}</th>
-                      <th>{{ isHindiMode ? 'कार्रवाई' : 'Action' }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let participation of paginatedParticipations">
-                      <td class="name-cell">
-                        <strong class="participation-title">{{ isHindiMode ? (participation.testId?.titleHi || participation.testId?.title) : participation.testId?.title }}</strong>
-                        <span class="participation-original" *ngIf="participation.originalName">{{participation.originalName}}</span>
-                        <button class="answer-sheet-btn" *ngIf="participation.answerPDF || participation.answerPDFKey" (click)="openSubmissionFile(participation._id)"><i class="fas fa-file-pdf"></i>{{ 'View answer sheet' | t }}</button>
-                      </td>
-                      <td>{{ (participation.submittedAt || participation.joinedAt) | date:'dd MMM yyyy, hh:mm a' }}</td>
-                      <td>
-                        <span class="status-badge" [class.ontime]="!participation.isLate" [class.late]="participation.isLate">
-                          <i class="fas" [class.fa-check]="!participation.isLate" [class.fa-clock]="participation.isLate"></i>
-                          {{ participation.isLate ? (isHindiMode ? 'देर से' : 'Late') : (isHindiMode ? 'समय पर' : 'On Time') }}
-                        </span>
-                      </td>
-                      <td>
-                        <button class="participation-details-btn" [disabled]="!participation.testId" (click)="viewParticipationDetails(participation)">
-                          <i class="fas fa-eye"></i><span>{{ isHindiMode ? 'विवरण' : 'View details' }}</span>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div class="participation-pagination" *ngIf="myParticipations().length > participationPageSize">
-                <button type="button" class="page-btn" [disabled]="currentParticipationPage === 1" (click)="changeParticipationPage(currentParticipationPage - 1)">
-                  <i class="fas fa-chevron-left"></i>
-                </button>
-
-                <button
-                  type="button"
-                  class="page-btn page-number"
-                  *ngFor="let page of [].constructor(participationTotalPages); let i = index"
-                  [class.active]="currentParticipationPage === i + 1"
-                  (click)="changeParticipationPage(i + 1)">
-                  {{ i + 1 }}
-                </button>
-
-                <button type="button" class="page-btn" [disabled]="currentParticipationPage === participationTotalPages" (click)="changeParticipationPage(currentParticipationPage + 1)">
-                  <i class="fas fa-chevron-right"></i>
-                </button>
-              </div>
+            <div *ngIf="!isLoadingParticipation && myParticipations().length > 0" class="table-container">
+              <table class="participation-table">
+                <thead>
+                  <tr>
+                    <th>{{ isHindiMode ? 'टेस्ट का नाम' : 'Test Name' }}</th>
+                    <th>{{ isHindiMode ? 'तिथि' : 'Date' }}</th>
+                    <th>{{ isHindiMode ? 'स्थिति' : 'Status' }}</th>
+                    <th>{{ isHindiMode ? 'कार्रवाई' : 'Action' }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let participation of myParticipations()">
+                    <td class="name-cell">
+                      <strong class="participation-title">{{ isHindiMode ? (participation.testId?.titleHi || participation.testId?.title) : participation.testId?.title }}</strong>
+                      <span class="participation-original" *ngIf="participation.originalName">{{participation.originalName}}</span>
+                      <button class="answer-sheet-btn" *ngIf="participation.answerPDF || participation.answerPDFKey" (click)="openSubmissionFile(participation._id)"><i class="fas fa-file-pdf"></i>{{ 'View answer sheet' | t }}</button>
+                    </td>
+                    <td>{{ (participation.submittedAt || participation.joinedAt) | date:'dd MMM yyyy, hh:mm a' }}</td>
+                    <td>
+                      <span class="status-badge" [class.ontime]="!participation.isLate" [class.late]="participation.isLate">
+                        <i class="fas" [class.fa-check]="!participation.isLate" [class.fa-clock]="participation.isLate"></i>
+                        {{ participation.isLate ? (isHindiMode ? 'देर से' : 'Late') : (isHindiMode ? 'समय पर' : 'On Time') }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="participation-details-btn" [disabled]="!participation.testId" (click)="viewParticipationDetails(participation)">
+                        <i class="fas fa-eye"></i><span>{{ isHindiMode ? 'विवरण' : 'View details' }}</span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </mat-tab>
@@ -682,26 +653,10 @@ export class LiveTestComponent implements OnInit, OnDestroy {
   // ============================================
   availableTests = signal<LiveTest[]>([]);
   myParticipations = signal<TestParticipation[]>([]);
-  participationPageSize = 5;
-  currentParticipationPage = 1;
   isLoading = false;
   isLoadingParticipation = false;
   get isHindiMode(): boolean { return localStorage.getItem('preferredLanguage') === 'hi'; }
   set isHindiMode(value: boolean) { localStorage.setItem('preferredLanguage', value ? 'hi' : 'en'); }
-
-  get participationTotalPages(): number {
-    return Math.max(1, Math.ceil(this.myParticipations().length / this.participationPageSize));
-  }
-
-  get paginatedParticipations(): TestParticipation[] {
-    const start = (this.currentParticipationPage - 1) * this.participationPageSize;
-    return this.myParticipations().slice(start, start + this.participationPageSize);
-  }
-
-  changeParticipationPage(page: number) {
-    if (page < 1 || page > this.participationTotalPages) return;
-    this.currentParticipationPage = page;
-  }
 
   // ============================================
   // FLOW STATE
@@ -715,7 +670,6 @@ export class LiveTestComponent implements OnInit, OnDestroy {
   private liveTestFlowRef: any;
   private goToLiveTestDetailRef: any;
   private submissionDialogRef: any;
-  clock = signal(0);
 
   // ============================================
   // SUBMISSION STATE
@@ -728,7 +682,6 @@ export class LiveTestComponent implements OnInit, OnDestroy {
   // TIMER STATE
   // ============================================
   private timerInterval: any = null;
-  private clockInterval: any = null;
   private timeRemaining = 0;
   private totalDuration = 0;
 
@@ -738,25 +691,12 @@ export class LiveTestComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadAvailableTests();
     this.loadMyParticipations();
-    this.clockInterval = setInterval(() => {
-      this.clock.update((value) => value + 1);
-      const tests = this.availableTests();
-      const shouldRefresh = tests.some((test) => {
-        const wasUpcoming = test.status === 'upcoming';
-        return wasUpcoming && this.isTestActive(test);
-      });
-      if (shouldRefresh) this.loadAvailableTests();
-    }, 1000);
   }
 
   loadMyParticipations() {
     this.isLoadingParticipation = true;
     this.liveTestService.getMyParticipations().subscribe({
-      next: response => {
-        this.myParticipations.set(response.data || []);
-        this.currentParticipationPage = 1;
-        this.isLoadingParticipation = false;
-      },
+      next: response => { this.myParticipations.set(response.data || []); this.isLoadingParticipation = false; },
       error: () => { this.isLoadingParticipation = false; }
     });
   }
@@ -764,10 +704,6 @@ export class LiveTestComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.detachLocalCamera();
     this.clearTimer();
-    if (this.clockInterval) {
-      clearInterval(this.clockInterval);
-      this.clockInterval = null;
-    }
   }
 
   // ============================================
@@ -874,13 +810,11 @@ export class LiveTestComponent implements OnInit, OnDestroy {
   }
 
   canJoin(test: LiveTest): boolean {
-    this.clock();
-    return this.isTestActive(test) && test.status !== 'submitted';
+    return test.status === 'available' || test.status === 'in-progress';
   }
 
   canSubmit(test: LiveTest): boolean {
-    this.clock();
-    return this.isTestActive(test) && test.status !== 'submitted';
+    return test.status === 'available' || test.status === 'in-progress';
   }
 
   isTestActive(test: LiveTest): boolean {
@@ -917,7 +851,6 @@ export class LiveTestComponent implements OnInit, OnDestroy {
   }
 
   getFormattedTimeRemaining(test: LiveTest): string {
-    this.clock();
     const seconds = this.getTimeRemaining(test);
     if (seconds <= 0) return '00:00:00';
     const hours = Math.floor(seconds / 3600);

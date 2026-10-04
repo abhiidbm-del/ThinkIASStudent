@@ -190,7 +190,7 @@
             [disabled]="isDisabled()"
             class="pay-button">
       <mat-spinner diameter="20" *ngIf="isProcessing()"></mat-spinner>
-      <span class="pay-button-content" *ngIf="!isProcessing()">
+      <span *ngIf="!isProcessing()">
         <mat-icon class="button-icon" *ngIf="!isFreePlan()">payment</mat-icon>
         <mat-icon class="button-icon" *ngIf="isFreePlan()">redeem</mat-icon>
         <span *ngIf="!isFreePlan()">Pay ₹{{ calculateTotal() | number:'1.0-0' }}</span>

@@ -16,21 +16,13 @@ export const roleGuard: CanActivateFn = (route) => {
     return false;
   }
 
-  if (currentUser.role !== expectedRole) {
-    console.warn(`Access denied. Required role: ${expectedRole}, User role: ${currentUser.role}`);
-    router.navigate(['/dashboard']);
-    return false;
+  // Check if user has the required role
+  if (currentUser.role === expectedRole) {
+    return true;
   }
 
-  const requiredPlan = route.data['plan'] || route.data['kind'] || route.data['audience'] || route.data['section'];
-  if (requiredPlan === 'pre' || requiredPlan === 'mains') {
-    const type = currentUser.type;
-    if (type === 'combo' || type === requiredPlan) {
-      return true;
-    }
-    router.navigate(['/dashboard']);
-    return false;
-  }
-
-  return true;
+  // If user doesn't have required role, redirect to dashboard with appropriate message
+  console.warn(`Access denied. Required role: ${expectedRole}, User role: ${currentUser.role}`);
+  router.navigate(['/dashboard']);
+  return false;
 };

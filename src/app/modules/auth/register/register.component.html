@@ -1,53 +1,22 @@
 <div class="register-container">
-  <main class="register-shell">
-    <aside class="brand-panel">
-      <a class="brand-logo-wrap" routerLink="/" aria-label="ThinkCivil IAS home">
-        <img class="register-logo" src="assets/images/ThinkCivil_IAS_Logo_HQ_3000x2000.png" alt="ThinkCivil IAS">
-      </a>
-      <p class="brand-kicker">THINKCIVIL IAS <span>·</span> STUDENT PORTAL</p>
-      <h1>
-        <span class="en">Your next chapter starts here.</span>
-        <span class="hi">आपका अगला अध्याय यहीं से शुरू होता है।</span>
-      </h1>
-      <p class="brand-description">
-        <span class="en">Create your student account and take the first step toward your goals.</span>
-        <span class="hi">अपना विद्यार्थी खाता बनाएं और अपने लक्ष्य की ओर पहला कदम बढ़ाएं।</span>
-      </p>
-      <div class="brand-rule"><span></span></div>
-      <p class="brand-footer">LEARN WITH PURPOSE <span>·</span> MOVE FORWARD</p>
-    </aside>
+  <mat-card class="register-card">
+    <mat-card-header>
+      <mat-card-title>ThinkCivil IAS / थिंकसिविल आईएएस</mat-card-title>
+      <mat-card-subtitle>Create your account / अपना खाता बनाएं</mat-card-subtitle>
+    </mat-card-header>
 
-    <section class="form-panel" aria-labelledby="register-title">
-      <mat-card class="register-card">
-        <div class="register-heading">
-          <p class="form-eyebrow">
-            <span class="en">STUDENT REGISTRATION</span>
-            <span class="hi">विद्यार्थी पंजीकरण</span>
-          </p>
-          <h2 id="register-title">
-            <span class="en">Create your account</span>
-            <span class="hi">अपना खाता बनाएं</span>
-          </h2>
-          <p>
-            <span class="en">Enter your details to get started.</span>
-            <span class="hi">शुरू करने के लिए अपना विवरण भरें।</span>
-          </p>
-        </div>
-
-        <mat-card-content>
-          <form class="form-grid" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <mat-card-content>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
         <!-- Full Name -->
-        <mat-form-field appearance="outline" class="full-width form-span">
+        <mat-form-field appearance="outline" class="full-width">
           <mat-label>पूरा नाम / Full Name</mat-label>
-             <input matInput formControlName="fullName" placeholder="अपना पूरा नाम दर्ज करें / Enter your full name"
-               [readonly]="otpSent()">
+          <input matInput formControlName="fullName" placeholder="अपना पूरा नाम दर्ज करें / Enter your full name">
           <mat-error *ngIf="registerForm.get('fullName')?.hasError('required')">
             पूरा नाम आवश्यक है / Full name is required
           </mat-error>
         </mat-form-field>
 
         <!-- Email with OTP -->
-        <div class="email-group">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>ईमेल / Email</mat-label>
           <input matInput formControlName="email" type="email" 
@@ -65,13 +34,12 @@
         <button mat-raised-button color="primary" type="button" 
                 class="full-width otp-button" 
                 (click)="sendOTP()" 
-                [disabled]="sendingOTP() || otpSent() || registerForm.get('fullName')?.invalid || registerForm.get('email')?.invalid">
+                [disabled]="sendingOTP() || otpSent() || registerForm.get('email')?.invalid">
           <mat-spinner diameter="20" *ngIf="sendingOTP()"></mat-spinner>
           <span *ngIf="!sendingOTP()">
             {{ otpSent() ? 'OTP Sent ✓' : 'Send OTP' }}
           </span>
         </button>
-        </div>
 
         <!-- OTP Field -->
         <div *ngIf="showOTPField()" class="otp-section">
@@ -79,9 +47,12 @@
             <mat-label>OTP / वन-टाइम पासवर्ड</mat-label>
             <input matInput formControlName="otp" 
                    placeholder="6-अंकीय OTP दर्ज करें / Enter 6-digit OTP"
-                   maxlength="6"
-                   [readonly]="otpVerified()">
-            <mat-icon matSuffix>{{ otpVerified() ? 'check_circle' : 'verified' }}</mat-icon>
+                   maxlength="6">
+            <button mat-icon-button matSuffix type="button" 
+                    
+                    [disabled]="verifyingOTP() || otpVerified() || registerForm.get('otp')?.invalid">
+              <mat-icon>{{ otpVerified() ? 'check_circle' : 'verified' }}</mat-icon>
+            </button>
             
             <mat-hint *ngIf="otpSent() && !otpVerified()">
               OTP expires in {{ formatRemainingTime() }}
@@ -98,7 +69,7 @@
                 class="full-width" 
                 (click)="verifyOTP()"
                     [disabled]="verifyingOTP() || otpVerified() || registerForm.get('otp')?.invalid">
-            {{ otpVerified() ? '✓ Email Verified' : 'Verify OTP' }}
+            {{ otpVerified() ? 'OTP Verified' : 'Send OTP' }}
         </button>
 
           <div class="otp-actions">
@@ -114,9 +85,8 @@
           </div>
         </div>
 
-        <div class="account-details" *ngIf="otpVerified()">
         <!-- Phone -->
-        <mat-form-field appearance="outline" class="full-width form-span">
+        <mat-form-field appearance="outline" class="full-width">
           <mat-label>फोन नंबर / Phone Number</mat-label>
           <input matInput formControlName="phone" 
                  placeholder="अपना 10-अंकीय फोन नंबर दर्ज करें / Enter your 10-digit phone number">
@@ -161,27 +131,24 @@
           </mat-error>
         </mat-form-field>
 
-        <mat-error class="form-span" *ngIf="registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched">
+        <mat-error *ngIf="registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched">
           पासवर्ड मेल नहीं खाते / Passwords do not match
         </mat-error>
 
         <!-- Submit Button -->
         <button mat-raised-button color="primary" type="submit" 
-          class="full-width submit-button form-span" 
+                class="full-width" 
                 [disabled]="!registerForm.valid || loading() || !otpVerified()">
           <mat-spinner diameter="20" *ngIf="loading()"></mat-spinner>
           <span *ngIf="!loading()">
             {{ otpVerified() ? 'पंजीकरण करें / Register' : 'Verify Email First' }}
           </span>
         </button>
-        </div>
-          </form>
+      </form>
 
       <div class="login-link">
         <p>पहले से ही एक खाता है? / Already have an account? <a routerLink="/login">यहां लॉगिन करें / Login here</a></p>
       </div>
-        </mat-card-content>
-      </mat-card>
-    </section>
-  </main>
+    </mat-card-content>
+  </mat-card>
 </div>

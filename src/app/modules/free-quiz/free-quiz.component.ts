@@ -256,7 +256,7 @@ export class FreeQuizComponent implements OnInit, OnDestroy {
 
   loadActiveQuizzes() {
     this.loading.set(true);
-    this.quizService.getActiveQuizzes().subscribe({
+    this.quizService.getAllQuizzes().subscribe({
       next: (quizzes) => {
         // Filter only active quizzes for public view
         const activeQuizzes = quizzes.filter(quiz => quiz.isActive);
@@ -802,7 +802,18 @@ scrollToQuestion(index: number): void {
   // Find the question element and scroll to it
   const element = document.getElementById(`question-${index}`);
   if (element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const container = document.querySelector('.questions-container');
+    if (container) {
+      const offset = 20; // Offset from the top
+      const elementPosition = element.getBoundingClientRect().top;
+      const containerPosition = container.getBoundingClientRect().top;
+      const scrollPosition = elementPosition - containerPosition - offset;
+      
+      container.scrollTo({
+        top: container.scrollTop + scrollPosition,
+        behavior: 'smooth'
+      });
+    }
   }
 }
 
